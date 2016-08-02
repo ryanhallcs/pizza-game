@@ -15,9 +15,9 @@ const SingleResource = React.createClass({
         var displayAmount = numeral(resource.amount).format('0.00');
  
         var displayRate = '';
-        if (resource.ratePerSecond != 0) {
-            var sign = resource.ratePerSecond > 0 ? '+' : '-';
-            displayRate = '(' + sign + numeral(resource.ratePerSecond).format('0.00') + '/s) ';
+        if (resource.calculatedRate != 0) {
+            var sign = resource.calculatedRate > 0 ? '+' : '-';
+            displayRate = '(' + sign + numeral(resource.calculatedRate).format('0.00') + '/s) ';
         }
 
         var devMode = true;

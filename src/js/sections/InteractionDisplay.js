@@ -3,6 +3,7 @@ import React from 'react';
 import { Jumbotron, Button, Row, Col, Table } from 'react-bootstrap'
 import ProgressButton, {STATE} from 'react-progress-button'
 import ResourceStore from "../stores/ResourceStore";
+import ProfessionUpgrade from "../components/ProfessionUpgrade";
 
 var moment = require('moment');
 
@@ -123,6 +124,7 @@ const Home2 = React.createClass({
                         </Table>
                     </Col>
                 </Row>
+                <ProfessionUpgrade eventManager={this.props.eventManager} />
              </Col> </Row>);
     }
 });

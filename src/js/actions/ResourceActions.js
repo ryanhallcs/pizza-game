@@ -17,15 +17,22 @@ var ResourceActions = {
             rateDelta: rateDelta
         });
     },
+    alterProfessionRate: function(professionName, rateFactor) {
+        PizzaDispatcher.dispatch({
+            actionType: PizzaConstants.ResourceActionTypes.ALTER_PROFESSION_RATE,
+            professionName: professionName,
+            rateFactor: rateFactor
+        });
+    },
     enablePlace: function(professionName) {
         PizzaDispatcher.dispatch({
-            actionType: PizzaConstants.ProfessionActionTypes.ENABLE_PROFESSION,
+            actionType: PizzaConstants.ResourceActionTypes.ENABLE_PROFESSION,
             professionName: professionName,
         });
     },
     assignHelpers: function(professionName, amount) {
         PizzaDispatcher.dispatch({
-            actionType: PizzaConstants.ProfessionActionTypes.ASSIGN_HELPERS,
+            actionType: PizzaConstants.ResourceActionTypes.ASSIGN_HELPERS,
             professionName: professionName,
             amount: amount
         });

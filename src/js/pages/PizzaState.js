@@ -86,7 +86,7 @@ function generateId() {
 const PizzaState = React.createClass({
     getInitialState: function() {
 
-        setInterval(this.intervalTenthSecondRunner, 100); // updates per tenth second
+        setInterval(ResourceStore.tick, 100); // updates per tenth second
         setInterval(this.intervalTriggerRunner, 500);
 
         return {
@@ -152,15 +152,6 @@ const PizzaState = React.createClass({
 
             this.setState(this.state);
         }
-    },
-    intervalTenthSecondRunner: function() {
-        ResourceStore.getAllResources().forEach(resource => {
-            var delta = resource.ratePerSecond / 10.0;
-
-            if (delta != 0) {
-                ResourceActions.alterResourceAmount(resource.name, delta);
-            }
-        });
     },
     changeInteractionDisplay: function(newDisplay) {
         if (newDisplay != this.state.interactionDisplay) {

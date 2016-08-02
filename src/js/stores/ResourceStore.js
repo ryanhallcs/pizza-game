@@ -41,6 +41,7 @@ var _professions = {
         resources: [
             'ingredients'
         ],
+        ratePerSecond: 0.2,
         enabled: true
     },
     baker: {
@@ -49,6 +50,7 @@ var _professions = {
         resources: [
             'pizza'
         ],
+        ratePerSecond: 0.2,
         enabled: true
     },
     evangelist: {
@@ -57,6 +59,7 @@ var _professions = {
         resources: [
             'helpers'
         ],
+        ratePerSecond: 0.2,
         enabled: false
     },
     researcher: {
@@ -65,6 +68,7 @@ var _professions = {
         resources: [
             'science'
         ],
+        ratePerSecond: 0.2,
         enabled: false
     }
 };
@@ -72,14 +76,13 @@ var _professions = {
 var CHANGE_EVENT = 'change';
 
 function alterResourceRate(resourceName, rateDelta, enabled = true) {
-        console.log('altering ' + resourceName + ' by ' + rateDelta);
         var targetResource = _resources[resourceName];
         targetResource.ratePerSecond += rateDelta;
         targetResource.enabled = enabled;
 }
 
 function alterResourceAmount(resourceName, amountDelta, considerCost = true) {
-        if (!canMakeResource(resourceName, amountDelta) || amountDelta == 0) {
+        if (considerCost && (!canMakeResource(resourceName, amountDelta) || amountDelta == 0)) {
             return;
         }
 
@@ -100,6 +103,11 @@ function alterResourceAmount(resourceName, amountDelta, considerCost = true) {
                 alterResourceAmount(resourceCostName, -targetResource.cost[resourceCostName] * amountDelta);
             }
         }
+}
+
+function alterProfessionRate(professionName, rateFactor) {
+    var profession = _professions[professionName];
+    profession.ratePerSecond *= rateFactor;
 }
 
 function canMakeResource(resourceName, amount) {
@@ -126,17 +134,14 @@ function assignHelpers(professionName, amount) {
     }, 0);
     var helpers = ResourceStore.getResource('helper').amount;
     var allowed = Math.min(helpers - assigned, amount);
-    _professions[professionName].amount += allowed;
-
-    // var activeHelpers = this.state.helpers.filter(helper => helper.enabled == true);
-    // var latestHelper = activeHelpers[activeHelpers.length - 1];
-    var productionRate = 0.2;
-    var rateDelta = productionRate * amount;
-    var resourcesAffected = _professions[professionName].resources;
-    resourcesAffected.forEach(res => {
-        console.log('altering rate of ' + res + ' by ' + rateDelta);
-        alterResourceRate(res, rateDelta);
-    });
+    var profession = _professions[professionName];
+    profession.amount += allowed;
+    
+    // var rateDelta = profession.ratePerSecond * amount;
+    // var resourcesAffected = profession.resources;
+    // resourcesAffected.forEach(res => {
+    //     alterResourceRate(res, rateDelta);
+    // });
 }
 
 var ResourceStore = assign({}, EventEmitter.prototype, {
@@ -146,7 +151,9 @@ var ResourceStore = assign({}, EventEmitter.prototype, {
    * @return {object}
    */
   getResource: function(resourceName) {
-    return _resources[resourceName];
+    var result = _resources[resourceName];
+    result.calculatedRate = ResourceStore.getResourceRate(resourceName);
+    return result;
   },
 
   /**
@@ -154,11 +161,23 @@ var ResourceStore = assign({}, EventEmitter.prototype, {
    * @return {object}
    */
   getAllResources: function() {
-    return Object.keys(_resources).map(key => _resources[key]);
+    return Object.keys(_resources).map(key => ResourceStore.getResource(key));
   },
 
   canMakeResource: function(resourceName, amount) {
       return canMakeResource(resourceName, amount);
+  },
+
+  getResourceRate: function(resourceName) {
+        var result = 0;
+        Object.keys(_professions).forEach(profName => {
+            var profession = _professions[profName];
+            var relevantResource = profession.resources.find(res => res == resourceName);
+            if (relevantResource != undefined && profession.amount != 0) {
+                result += profession.ratePerSecond * profession.amount;
+            }
+        });
+        return result;
   },
 
   /**
@@ -166,7 +185,23 @@ var ResourceStore = assign({}, EventEmitter.prototype, {
    * @return {object}
    */
   getProfession: function(name) {
-    return _professions[name];
+        return _professions[name];
+  },
+
+  tick: function() {
+        Object.keys(_professions).forEach(profName => {
+            var profession = _professions[profName];
+            if (profession.enabled && profession.amount != 0) {
+                profession.resources.forEach(resource => {
+                    var delta = (profession.ratePerSecond * profession.amount) / 10.0;
+
+                    if (delta != 0) {
+                        alterResourceAmount(resource, delta);
+                    }
+                });
+            }
+        });
+        ResourceStore.emitChange();
   },
 
   /**
@@ -218,12 +253,17 @@ PizzaDispatcher.register(function(action) {
         ResourceStore.emitChange();
       break;
 
-    case PizzaConstants.ProfessionActionTypes.ENABLE_PROFESSION:
+    case PizzaConstants.ResourceActionTypes.ALTER_PROFESSION_RATE:
+        alterProfessionRate(action.professionName, action.rateFactor);
+        ResourceStore.emitChange();
+      break;
+
+    case PizzaConstants.ResourceActionTypes.ENABLE_PROFESSION:
         enableProfession(action.professionName);
         ResourceStore.emitChange();
       break;
 
-    case PizzaConstants.ProfessionActionTypes.ASSIGN_HELPERS:
+    case PizzaConstants.ResourceActionTypes.ASSIGN_HELPERS:
         assignHelpers(action.professionName, action.amount);
         ResourceStore.emitChange();
         break;
