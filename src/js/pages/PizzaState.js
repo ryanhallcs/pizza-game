@@ -4,33 +4,16 @@ import ResourceDisplay from "../sections/ResourceDisplay";
 import EventDisplay from "../sections/EventDisplay"
 import InteractionDisplay from "../sections/InteractionDisplay"
 import MapDisplay from "../sections/MapDisplay"
-import PizzaStream from "../components/PizzaStream";
 import TriggerSystem from "../components/TriggerSystem";
 import { Row, Col } from 'react-bootstrap';
 
-const Resources = [
-    {
-        name: 'dough',
-        enabled: false,
-    },
-    {
-        name: 'sauce',
-        enabled: false,
-    },
-    {
-        name: 'cheese',
-        enabled: false,
-    },
-    {
-        name: 'pizza',
-        enabled: false,
-        cost: {
-            dough: 1,
-            sauce: 1,
-            cheese: 1
-        }
-    },
-];
+import ResourceStore from "../stores/ResourceStore";
+import ResourceActions from "../actions/ResourceActions";
+import FlagStore from "../stores/FlagStore";
+import FlagActions from "../actions/FlagActions";
+import MapStore from "../stores/MapStore";
+import MapActions from "../actions/MapActions";
+import EventActions from "../actions/EventActions";
 
 const Triggers = [
     /*
@@ -57,6 +40,12 @@ const Triggers = [
         type: 'resource'
     },
     {
+        result: 'add-roommate',
+        type: 'customEvent',
+        typeContext: 'add-roommate',
+        hasTriggered: false,
+    },
+    {
         result: 'publish-stream',
         resultContext: 'Yum!',
         type: 'customEvent',
@@ -65,154 +54,83 @@ const Triggers = [
     }
 ];
 
-const Flags = {
-    'work-ingredients': false,
-    'work-pizza': false,
-    'warehouse-ingredients': false,
-    'warehouse-pizza': false,
-    'add-roomate': false
-}
-
-const Places = [
-    {
-        id: 'home',
-        enabled: true,
-        text: "Home",
-        position: 0
-    },
-    {
-        id: 'warehouse',
-        enabled: false,
-        text: "Warehouse",
-        position: 1
-    },
-    {
-        id: 'pappy',
-        enabled: true,
-        text: "Pappy's Pizza",
-        position: 2
-    },
-];
-
 const Events = {
     'get-warehouse': function(trigger, pizzaState) {
-        var warehousePlace = pizzaState.places.filter(function(place) {
-            return place.id == 'warehouse';
-        }); 
-        warehousePlace[0].enabled = true;
+        MapActions.enablePlace('warehouse');
         trigger.hasTriggered = true;
 
-        pizzaState.pizzaStream.publish(trigger.resultContext, 'success');
+        EventActions.publish(trigger.resultContext, 'success');
     },
     'publish-stream': function(trigger, pizzaState) {
-        pizzaState.pizzaStream.publish(trigger.resultContext, 'info');
+        EventActions.publish(trigger.resultContext, 'info');
     },
-    'set-flag': function(trigger, pizzaState) {
-        pizzaState.flags[trigger.resultContext.id] = trigger.resultContext.value;
+    'add-roommate': function(trigger, pizzaState) {
         trigger.hasTriggered = true;
-    },
+        //pizzaState.helpers[0].enabled = true;
+        pizzaState.interactionDisplay = 'home2';
+        MapActions.changePlace('home', 'home2');
+        EventActions.publish('Wow, this pizza is great! You need help making more?', 'success');
+    }
+}
+
+function generateId() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
 }
 
 const PizzaState = React.createClass({
     getInitialState: function() {
-        var resourceDictionary = {};
-        Resources.forEach(function(resource) {
-            resourceDictionary[resource.name] = this.resourceFactory(resource);
-        }.bind(this));
-
-        var flagTriggers = Object.keys(Flags).map(function(flagName) {
-            return  {
-                    result: 'set-flag',
-                    resultContext: {
-                        id: flagName,
-                        value: true
-                    },
-                    type: 'customEvent',
-                    typeContext: flagName,
-                    hasTriggered: false,
-                };
-        });
 
         setInterval(this.intervalTenthSecondRunner, 100); // updates per tenth second
         setInterval(this.intervalTriggerRunner, 500);
 
         return {
-            pizzaStream: new PizzaStream(),
             triggerSystem: new TriggerSystem(),
-            resources: resourceDictionary,
             interactionDisplay: 'home',
-            triggerList: Triggers.concat(flagTriggers),
-            flags: Flags,
-            places: Places,
+            triggerList: Triggers,
             possibleEvents: Events,
-            newEvents: []
+            newEvents: [],
+            //helpers: Helpers,
+
+            resources: ResourceStore.getAllResources().reduce((a,b) => {
+                a[b.name] = b;
+                return a;
+            }, {}),
+            flags: FlagStore.getAllFlags(),
+            places: MapStore.getAllPlaces(),
+            professions: ResourceStore.getAllProfessions()
         }
     },
-    resourceFactory: function(resource) {
-        return {
-            name: resource.name,
-            enabled: resource.enabled,
-            ratePerSecond: 0.0,
-            amount: 0.0,
-            cost: resource.cost
-        }
+
+    componentDidMount: function() {
+        //ResourceStore.addChangeListener(this._onChangeResource);
+        FlagStore.addChangeListener(this._onChangeFlag);
+        MapStore.addChangeListener(this._onChangeMap);
     },
-    alterResourceRate: function(resourceName, rateDelta, enabled = true) {
-        var state = this.state;
-
-        var targetResource = state.resources[resourceName];
-        targetResource.ratePerSecond += rateDelta;
-        targetResource.enabled = enabled;
-        
-        this.setState(state);
-
-        var body = 'Changed ' + resourceName + ' rate by ' + rateDelta + '!';
-        var type = 'info'
-        this.publishLog(body, type);
+    componentWillUnmount: function() {
+        //ResourceStore.removeChangeListener(this._onChangeResource);
+        FlagStore.removeChangeListener(this._onChangeFlag);
+        MapStore.removeChangeListener(this._onChangeMap);
     },
-    alterResourceAmount: function(resourceName, amountDelta, considerCost = true) {
-        if (!this.canMakeResource(resourceName, amountDelta) || amountDelta == 0) {
-            return;
-        }
-
-        var targetResource = this.state.resources[resourceName];
-        targetResource.amount += amountDelta;
-        
-        if (targetResource.amount < 0) {
-            targetResource.amount = 0;
-        }
-
-        if (amountDelta > 0) {
-            targetResource.enabled = true;
-        }
-
-        if (targetResource.cost != null && considerCost && amountDelta > 0) {   
-            for (var resourceCostName in targetResource.cost) {
-                // don't create cycles :)
-                this.alterResourceAmount(resourceCostName, -targetResource.cost[resourceCostName] * amountDelta);
-            }
-        }
-        
-        this.state.resources[resourceName] = targetResource;
+    _onChangeResource: function() {
+        this.state.resources = ResourceStore.getAllResources().reduce((a,b) => {
+                a[b.name] = b;
+                return a;
+            }, {});
         this.setState(this.state);
     },
-    canMakeResource: function(resourceName, amount) {
-        var resource = this.state.resources[resourceName];
-        if (resource.cost == null || amount < 0) {
-            return true;
-        }
-        
-        return Object.keys(resource.cost).every(function (resourceCostName) {
-            var haveOfRequirement = this.state.resources[resourceCostName].amount;
-            var need = resource.cost[resourceCostName] * amount;
-            return haveOfRequirement >= amount;
-        }.bind(this));
+    _onChangeFlag: function() {
+        this.state.flags = FlagStore.getAllFlags();
+        this.setState(this.state);
     },
-    getAllResources: function() {
-        return this.state.resources;
-    },
-    getResource: function(resourceName) {
-        return this.state.resources[resourceName];
+    _onChangeMap: function() {
+        this.state.places = MapStore.getAllPlaces();
+        this.setState(this.state);
     },
     intervalTriggerRunner: function() {
         var newTriggers = this.state.triggerSystem.checkTriggers(this.state.triggerList, this.state);
@@ -236,49 +154,59 @@ const PizzaState = React.createClass({
         }
     },
     intervalTenthSecondRunner: function() {
-        for (var key in this.state.resources) {
-            var resource = this.state.resources[key];
-
+        ResourceStore.getAllResources().forEach(resource => {
             var delta = resource.ratePerSecond / 10.0;
-            this.alterResourceAmount(key, delta);
-        }
-    },
-    publishLog: function(body, type) {
-        this.state.pizzaStream.publish(body, type);
-        this.setState(this.state);
+
+            if (delta != 0) {
+                ResourceActions.alterResourceAmount(resource.name, delta);
+            }
+        });
     },
     changeInteractionDisplay: function(newDisplay) {
         if (newDisplay != this.state.interactionDisplay) {
             this.state.interactionDisplay = newDisplay;
             this.setState(this.state);
-            this.publishLog('New destination: ' + newDisplay, 'info');
         }
+    },
+    unlockUpgrade(type, name) {
+        // switch (type) {
+        //     case 'helper':
+        //         var upgrade = this.state.helpers.find(helper => helper.name == name);
+        //         if (upgrade == null) {
+        //             console.log('could not find helper ' + name);
+        //             return;
+        //         }
+        // }
     },
     resourceManagerFactory: function () {
         return {
-            getResource: this.getResource,
-            alterResourceAmount: this.alterResourceAmount,
-            alterResourceRate: this.alterResourceRate,
-            getAllResources: this.getAllResources
+            getResource: ResourceStore.getResource,
+            alterResourceAmount: ResourceActions.alterResourceAmount,
+            alterResourceRate: ResourceActions.alterResourceRate,
+            getAllResources: ResourceStore.getAllResources,
+            canMakeResource: ResourceStore.canMakeResource,
+            professions: this.state.professions,
+            assignHelpers: ResourceActions.assignHelpers
         };
     },
     broadcast: function(eventName, id) {
         this.state.newEvents.push({
             name: eventName,
-            id: this.state.pizzaStream.generateId()
+            id: generateId()
         });
         this.setState(this.state);
     },
     eventManagerFactory: function() {
         return {
-            publishLog: this.publishLog,
+            publishLog: EventActions.publish,
             broadcast: this.broadcast,
+            setFlag: FlagActions.setFlag,
             flags: this.state.flags
         };
     },
     render: function() {
         return (
-            <Row className="show-grid">
+            <Row>
                 <Col md={3}>
                     <ResourceDisplay eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} />
                 </Col>
@@ -288,7 +216,7 @@ const PizzaState = React.createClass({
                             <InteractionDisplay eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} currentDisplay={this.state.interactionDisplay} />
                         </Col>
                         <Col md={6}>
-                            <EventDisplay events={this.state.pizzaStream.events} />
+                            <EventDisplay />
                         </Col>
                     </Row>
                     <Row>

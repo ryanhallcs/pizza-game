@@ -9,7 +9,7 @@ const SingleResource = React.createClass({
     render: function() {
         var resource = this.props.resource;
         if (!resource.enabled) {
-            return <div></div>;
+            return <tr></tr>;
         }
 
         var displayAmount = numeral(resource.amount).format('0.00');
@@ -33,9 +33,11 @@ const SingleResource = React.createClass({
         }
 
         return (
-            <div> 
-                {resource.name}: {displayAmount} {displayRate} {displayChangeRateNeg}{displayChangeRatePos}
-            </div> 
+            <tr key={resource.name}>
+                <td>{resource.name}</td>
+                <td>{displayAmount}</td>
+                <td>{displayRate} {displayChangeRateNeg}{displayChangeRatePos}</td>
+            </tr>
         );
     }
 });

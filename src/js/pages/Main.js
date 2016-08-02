@@ -9,7 +9,7 @@ import { Grid } from 'react-bootstrap';
 export default class Main extends React.Component {
   render () {
     return (
-      <Grid>
+      <Grid fluid>
         <Header />
         <PizzaState />
         <Footer />

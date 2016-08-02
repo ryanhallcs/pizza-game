@@ -1,18 +1,36 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
+import { Button, Table } from 'react-bootstrap';
 import SingleResource from "../components/SingleResource";
+import ResourceStore from "../stores/ResourceStore";
+import ResourceActions from "../actions/ResourceActions";
 
 const ResourceDisplay = React.createClass({
+    getInitialState: function() {
+        return {
+            resources: ResourceStore.getAllResources()
+        };
+    },
+    componentDidMount: function() {
+        ResourceStore.addChangeListener(this._onChangeResource);
+    },
+    componentWillUnmount: function() {
+        ResourceStore.removeChangeListener(this._onChangeResource);
+    },
+    _onChangeResource: function() {
+        this.state.resources = ResourceStore.getAllResources();
+        this.setState(this.state);
+    },
     eatPizza: function() {
-        this.props.resourceManager.alterResourceAmount('pizza', -1);
+        ResourceActions.alterResourceAmount('pizza', -1);
         this.props.eventManager.broadcast('eat-pizza');
     },
     render: function() {
-        var allResources = this.props.resourceManager.getAllResources();
-        var alterResourceRate = this.props.resourceManager.alterResourceRate;
+        var allResources = this.state.resources;
+        var alterResourceRate = ResourceActions.alterResourceRate;
 
         var buttons = [];
-        if (allResources['pizza'].amount > 0) {
+        var pizzaResource = allResources.find(res => res.name == 'pizza');
+        if (pizzaResource.amount > 0) {
             buttons.push(<Button key='eat-pizza' onClick={this.eatPizza}>Eat Pizza</Button>);
         }
 
@@ -26,15 +44,21 @@ const ResourceDisplay = React.createClass({
 
         return (
             <div>
-                {Object.keys(allResources).map(function(resourceKey, i) {
-                    var resource = allResources[resourceKey];
-                    return (<SingleResource key={resource.name} resource={resource} resourceManager={this.props.resourceManager} />)
-                }.bind(this))}
-                {buttons.map(function(button) {
-                    return button;
-                })}
-                <br />
-                <br />
+                <Table striped bordered condensed hover>
+                    <thead>
+                        <tr>
+                            <th>Resource</th>
+                            <th>Amount</th>
+                            <th>Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {this.state.resources.map(resource =>
+                        <SingleResource key={resource.name} resource={resource} resourceManager={this.props.resourceManager} />
+                    )}
+                    </tbody>
+                </Table>
+                {buttons}
                 <br />
                 <br />
                 {flags.map(function(flag) {

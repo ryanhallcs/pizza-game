@@ -1,24 +1,26 @@
 import React from 'react';
 
-import { Jumbotron, Button } from 'react-bootstrap'
+import { Jumbotron, Button, Row, Col, Table } from 'react-bootstrap'
 import ProgressButton, {STATE} from 'react-progress-button'
+import ResourceStore from "../stores/ResourceStore";
 
 var moment = require('moment');
 
-const Home = React.createClass({
+const Home1 = React.createClass({
     getInitialState: function() {
         return {
             makePizzaState: STATE.NOTHING
         };
     },
     shareWorkPizza: function() {
-        this.props.eventManager.publishLog('Your roomate thanks you', 'info');
+        this.props.eventManager.publishLog('Your roommate thanks you', 'info');
         this.props.resourceManager.alterResourceAmount('pizza', -1);
     },
     shareWarehousePizza: function() {
         this.props.resourceManager.alterResourceAmount('pizza', -1);
-        this.props.eventManager.publishLog('Your roomate has a sudden urge to assist in pizza making', 'success');
-        this.props.eventManager.broadcast('add-roomate');
+        this.props.resourceManager.alterResourceAmount('helper', 1, false);
+        this.props.eventManager.broadcast('add-roommate');
+        this.props.eventManager.setFlag('first-roommate');
     },
     makePizza: function() {
         this.setState({
@@ -28,10 +30,10 @@ const Home = React.createClass({
         this.props.resourceManager.alterResourceAmount('pizza', 1);
 
         if (this.props.eventManager.flags['warehouse-ingredients']) {
-            this.props.eventManager.broadcast('warehouse-pizza');
+            this.props.eventManager.setFlag('warehouse-pizza');
         }
         else {
-            this.props.eventManager.broadcast('work-pizza');
+            this.props.eventManager.setFlag('work-pizza');
         }
 
         setTimeout(() => {
@@ -45,9 +47,7 @@ const Home = React.createClass({
         var hasMadeWarehousePizza = this.props.eventManager.flags['warehouse-pizza'];
         var havePizzas = this.props.resourceManager.getResource('pizza').amount >= 1;
 
-        var havePizzaIngredients = this.props.resourceManager.getResource('dough').amount >= 1
-                            &&  this.props.resourceManager.getResource('cheese').amount >= 1
-                            &&  this.props.resourceManager.getResource('sauce').amount >= 1;
+        var havePizzaIngredients = this.props.resourceManager.canMakeResource('pizza', 1);
 
         var makePizzaButton = <p></p>;
         if (havePizzaIngredients) {
@@ -71,6 +71,62 @@ const Home = React.createClass({
     }
 });
 
+const Home2 = React.createClass({
+    addProfession: function(name, count) {
+        this.props.eventManager.publishLog('adding ' + count + ' helpers to ' + name, 'info');
+        this.props.resourceManager.assignHelpers(name, count);
+    },
+    removeProfession: function(name, count) {
+        this.props.eventManager.publishLog('removing ' + count + ' helpers from ' + name, 'info');
+        this.props.resourceManager.assignHelpers(name, -count);
+    },
+    addHelper: function() {
+        this.props.resourceManager.alterResourceAmount('helper', 1);
+    },
+    render: function() {
+        var total = Object.keys(this.props.resourceManager.professions).reduce( (a, b) =>
+            a + this.props.resourceManager.professions[b].amount
+        , 0);
+        var helpers = this.props.resourceManager.getResource('helper').amount;
+        var unassigned = helpers - total;
+        var canBuyHelper = this.props.resourceManager.canMakeResource('helper', 1);
+        return (
+            <Row> <Col md={12}>
+                <Row> <Col md={12}> <h1> You're home! </h1> </Col> </Row> 
+                <Row> 
+                    <Col md={6}> <h3> Unassigned: {unassigned} </h3> </Col>
+                    <Col md={6}> <Button disabled={!canBuyHelper} onClick={this.addHelper}> Convert helper </Button> </Col>
+                </Row> 
+                <Row>
+                    <Col md={12}>
+                        <Table striped bordered condensed hover>
+                            <thead>
+                                <tr>
+                                    <th>Profession</th>
+                                    <th>Assigned</th>
+                                    <th>Add</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.keys(this.props.resourceManager.professions).filter((prof) =>
+                                     this.props.resourceManager.professions[prof].enabled
+                                ).map((prof) =>
+                                    <tr>
+                                        <td>{this.props.resourceManager.professions[prof].name}</td>
+                                        <td>{this.props.resourceManager.professions[prof].amount}</td>
+                                        <td><Button disabled={unassigned <= 0} onClick={this.addProfession.bind(this, this.props.resourceManager.professions[prof].name, 1)}>+</Button></td>
+                                        <td><Button disabled={this.props.resourceManager.professions[prof].amount <= 0} onClick={this.removeProfession.bind(this, this.props.resourceManager.professions[prof].name, 1)}>-</Button></td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </Table>
+                    </Col>
+                </Row>
+             </Col> </Row>);
+    }
+});
+
 const Pappys = React.createClass({
     getInitialState: function() {
         return {
@@ -79,11 +135,11 @@ const Pappys = React.createClass({
     },
     addResource: function (resourceName) {
         this.props.resourceManager.alterResourceAmount(resourceName, 1);
-        this.props.eventManager.broadcast('work-ingredients');
+        this.props.eventManager.setFlag('work-ingredients');
     },
     makePizzaClick: function() {
         this.setState({makePizzaState: STATE.LOADING});
-        this.props.eventManager.broadcast('work-pizza');
+        this.props.eventManager.setFlag('work-pizza');
 
         setTimeout(() => {
             this.setState({makePizzaState: STATE.NOTHING});
@@ -91,9 +147,7 @@ const Pappys = React.createClass({
         }, 500);
     },
     render: function() {
-        var disableMakePizza = !(this.props.resourceManager.getResource('dough').amount >= 1
-                            &&  this.props.resourceManager.getResource('cheese').amount >= 1
-                            &&  this.props.resourceManager.getResource('sauce').amount >= 1);
+        var disableMakePizza = !this.props.resourceManager.canMakeResource('pizza', 1);
 
         var makePizzaState = this.state.makePizzaState;
         if (disableMakePizza && makePizzaState == STATE.NOTHING) {
@@ -104,9 +158,7 @@ const Pappys = React.createClass({
             <div> 
                 <p>Pappy’s Hometown Pizza</p>
                 
-                <Button bsSize="small" onClick={() => this.addResource('dough')}>Get Dough</Button>
-                <Button bsSize="small" onClick={() => this.addResource('sauce')}>Get Sauce</Button>
-                <Button bsSize="small" onClick={() => this.addResource('cheese')}>Get Cheese</Button>
+                <Button bsSize="small" onClick={() => this.addResource('ingredients')}>Get Ingredients</Button>
                 <ProgressButton state={makePizzaState} onClick={this.makePizzaClick}>Make a Pizza</ProgressButton>
             </div>
         );
@@ -121,31 +173,10 @@ const Warehouse = React.createClass({
             suppliesCooldown: 2000
         };
     },
-    // componentWillMount : function() {
-    //     if (this.state.suppliesStart != null) {
-    //         var currentTime = moment();
-
-    //         var elapsedMs = currentTime.milliseconds() - this.state.suppliesStart.milliseconds();
-
-    //         if (elapsedMs >= this.state.suppliesCooldown) {
-    //             this.state.suppliesStart = null;
-    //             this.state.suppliesState = STATE.NOTHING;
-    //             this.setState(this.state);
-    //         } else {
-    //             setTimeout(() => {
-    //                 this.state.suppliesStart = null;
-    //                 this.state.suppliesState = STATE.NOTHING;
-    //                 this.setState(this.state);
-    //             }, this.state.suppliesCooldown - elapsedMs);
-    //         }
-    //     }
-    // },
     gatherResources: function() {
-        this.props.resourceManager.alterResourceAmount('dough', 10);
-        this.props.resourceManager.alterResourceAmount('sauce', 10);
-        this.props.resourceManager.alterResourceAmount('cheese', 10);
-        this.props.eventManager.publishLog('You loot some pizza supplies!', 'info');
-        this.props.eventManager.broadcast('warehouse-ingredients');
+        this.props.resourceManager.alterResourceAmount('ingredients', 10);
+        this.props.eventManager.publishLog('You loot some pizza supplies!', 'success');
+        this.props.eventManager.setFlag('warehouse-ingredients');
 
         this.setState({
             suppliesStart: moment(),
@@ -167,18 +198,31 @@ const Warehouse = React.createClass({
     }
 });
 
+const PlaceMap = {
+                'home': Home1,
+                'home2': Home2,
+                'pappy': Pappys,
+                'warehouse': Warehouse
+            };
+
 const InteractionDisplay = React.createClass({
     getInitialState: function() {
         return {
-            displays: {
-                'home': Home,
-                'pappy': Pappys,
-                'warehouse': Warehouse
-            }
+            resources: ResourceStore.getAllResources()
         };
     },
+    componentDidMount: function() {
+        ResourceStore.addChangeListener(this._onChangeResource);
+    },
+    componentWillUnmount: function() {
+        ResourceStore.removeChangeListener(this._onChangeResource);
+    },
+    _onChangeResource: function() {
+        this.state.resources = ResourceStore.getAllResources();
+        this.setState(this.state);
+    },
     render: function() {
-        var Child = this.state.displays[this.props.currentDisplay];
+        var Child = PlaceMap[this.props.currentDisplay];
 
         return (
             <Child eventManager={this.props.eventManager} resourceManager={this.props.resourceManager} />
