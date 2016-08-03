@@ -39,7 +39,7 @@ var _helpers = [
     },
     { 
         name:"Farmer",
-        initialCost: 0,
+        initialCost: 100,
         enabled: false,
         bought: false,
         professions: [
@@ -50,7 +50,7 @@ var _helpers = [
     },
     { 
         name:"Mushroom Farmer",
-        initialCost: 0,
+        initialCost: 400,
         enabled: false,
         bought: false,
         professions: [
@@ -61,7 +61,7 @@ var _helpers = [
     },
     { 
         name:"Food Cart",
-        initialCost: 0,
+        initialCost: 500,
         enabled: false,
         bought: false,
         professions: [
@@ -72,7 +72,7 @@ var _helpers = [
     },
     { 
         name:"Butcher",
-        initialCost: 0,
+        initialCost: 1000,
         enabled: false,
         bought: false,
         professions: [
@@ -83,7 +83,7 @@ var _helpers = [
     },
     { 
         name:"Food truck",
-        initialCost: 0,
+        initialCost: 10000,
         enabled: false,
         bought: false,
         professions: [

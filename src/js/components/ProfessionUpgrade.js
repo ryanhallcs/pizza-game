@@ -9,7 +9,7 @@ import UpgradeActions from "../actions/UpgradeActions";
 const ProfessionUpgrade = React.createClass({
     getInitialState: function() {
         return {
-            helperUpgrades: UpgradeStore.getAllHelperUpgrades()
+            helperUpgrades: UpgradeStore.getAllHelperUpgrades(false)
         };
     },
     componentDidMount: function() {
@@ -19,7 +19,7 @@ const ProfessionUpgrade = React.createClass({
         UpgradeStore.removeChangeListener(this._onChange);
     },
     _onChange: function() {
-        this.state.helpers = UpgradeStore.getAllHelperUpgrades();
+        this.state.helperUpgrades = UpgradeStore.getAllHelperUpgrades(false);
         this.setState(this.state);
     },
     buyProfessionUpgrade: function(helperName) {
@@ -35,7 +35,7 @@ const ProfessionUpgrade = React.createClass({
     },
     render: function() {
         var pizzas = ResourceStore.getResource('pizza').amount;
-        var helpers = this.state.helperUpgrades.filter(helper => helper.enabled);
+        var helpers = this.state.helperUpgrades;
 
         return (
                 <Row>
