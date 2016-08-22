@@ -5,9 +5,9 @@ import { Row, Col } from 'react-bootstrap';
 export default class Header extends React.Component {
   render () {
     return (
-      <Row>
+      <Row className='header-footer'>
          <Col md={12}>
-            <p> Header </p>
+            <p> Pizza Game </p>
           </Col>
       </Row>
     );

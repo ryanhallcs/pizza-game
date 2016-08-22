@@ -4,7 +4,7 @@
   "description": "incremental pizza",
   "main": "webpack.config.js",
   "scripts": {
-    "dev": "./node_modules/.bin/webpack-dev-server --content-base src --inline --hot",
+    "dev": "webpack-dev-server --content-base src --inline --hot",
     "push": "webpack && aws s3 sync ./src s3://pizza-game --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers",
     "test": "echo \"No test!\" && exit 1"
   },

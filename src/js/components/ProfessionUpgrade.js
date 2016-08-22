@@ -15,7 +15,7 @@ const ProfessionUpgrade = React.createClass({
     componentDidMount: function() {
         UpgradeStore.addChangeListener(this._onChange);
     },
-    UpgradeStore: function() {
+    componentWillUnmount: function() {
         UpgradeStore.removeChangeListener(this._onChange);
     },
     _onChange: function() {

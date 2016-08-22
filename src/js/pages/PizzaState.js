@@ -197,24 +197,20 @@ const PizzaState = React.createClass({
     },
     render: function() {
         return (
-            <Row>
+            <Row className='full-height'>
                 <Col md={3}>
                     <ResourceDisplay eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} />
                 </Col>
-                <Col md={9}>
-                    <Row className="show-grid">
-                        <Col md={6}>
-                            <InteractionDisplay eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} currentDisplay={this.state.interactionDisplay} />
-                        </Col>
-                        <Col md={6}>
+                <Col md={4}>
+                    <InteractionDisplay eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} currentDisplay={this.state.interactionDisplay} />
+                </Col>
+                <Col md={5}>
+                    <Row className='interaction main-layout-border'>
+                        <Col md={12}>
                             <EventDisplay />
                         </Col>
                     </Row>
-                    <Row>
-                        <Col md={12}>
-                            <MapDisplay places={this.state.places} changeInteractionDisplay={this.changeInteractionDisplay} />
-                        </Col>
-                    </Row>
+                    <MapDisplay places={this.state.places} changeInteractionDisplay={this.changeInteractionDisplay} />
                 </Col>
             </Row>
         );

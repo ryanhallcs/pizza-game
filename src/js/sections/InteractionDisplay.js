@@ -227,7 +227,9 @@ const InteractionDisplay = React.createClass({
         var Child = PlaceMap[this.props.currentDisplay];
 
         return (
-            <Child eventManager={this.props.eventManager} resourceManager={this.props.resourceManager} />
+            <Row className='main-layout-border full-height'>
+                <Child eventManager={this.props.eventManager} resourceManager={this.props.resourceManager} />
+            </Row>
         );
     }
 });

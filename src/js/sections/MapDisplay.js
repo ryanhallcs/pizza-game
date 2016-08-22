@@ -7,7 +7,7 @@ const MapDisplay = React.createClass({
         var availablePlaces = this.props.places;
         var colWidth = Math.floor(12.0 / availablePlaces.length);
         return (
-            <div>
+            <Row className='map main-layout-border'>
                 {this.props.places.map(place => {
                     return (
                         <Col key={place.id} md={colWidth}>
@@ -15,7 +15,7 @@ const MapDisplay = React.createClass({
                         </Col>
                     );
                 })}
-       	    </div>
+       	    </Row>
         );
     }
 });

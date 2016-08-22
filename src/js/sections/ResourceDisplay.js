@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Table } from 'react-bootstrap';
+import { Row, Col, Button, Table } from 'react-bootstrap';
 import SingleResource from "../components/SingleResource";
 import ResourceStore from "../stores/ResourceStore";
 import ResourceActions from "../actions/ResourceActions";
@@ -43,7 +43,7 @@ const ResourceDisplay = React.createClass({
         }
 
         return (
-            <div>
+            <Row className='fill main-layout-border full-height'> <Col md={12}>
                 <Table striped bordered condensed hover>
                     <thead>
                         <tr>
@@ -64,7 +64,7 @@ const ResourceDisplay = React.createClass({
                 {flags.map(function(flag) {
                     return <p key={flag}> {flag} is set! </p>
                 })}
-       	    </div>
+       	    </Col> </Row>
         )
     }
 });

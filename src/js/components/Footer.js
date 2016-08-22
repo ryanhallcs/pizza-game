@@ -4,7 +4,7 @@ import { Row, Col } from 'react-bootstrap';
 export default class Footer extends React.Component {
   render () {
     return (
-      <Row>
+      <Row className='header-footer'>
          <Col md={12}>
             <p> Footer </p>
           </Col>
