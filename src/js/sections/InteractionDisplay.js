@@ -6,6 +6,7 @@ import ResourceStore from "../stores/ResourceStore";
 import ProfessionUpgrade from "../components/ProfessionUpgrade";
 
 var moment = require('moment');
+var numeral = require('numeral');
 
 const Home1 = React.createClass({
     getInitialState: function() {
@@ -88,15 +89,17 @@ const Home2 = React.createClass({
         var total = Object.keys(this.props.resourceManager.professions).reduce( (a, b) =>
             a + this.props.resourceManager.professions[b].amount
         , 0);
-        var helpers = this.props.resourceManager.getResource('helper').amount;
+        var helperResource = this.props.resourceManager.getResource('helper');
+        var helpers = helperResource.amount;
         var unassigned = helpers - total;
         var canBuyHelper = this.props.resourceManager.canMakeResource('helper', 1);
+        var helperCost = numeral(helperResource.cost.pizza).format('0.00');
         return (
             <Row> <Col md={12}>
                 <Row> <Col md={12}> <h1> You're home! </h1> </Col> </Row> 
                 <Row> 
                     <Col md={6}> <h3> Unassigned: {unassigned} </h3> </Col>
-                    <Col md={6}> <Button disabled={!canBuyHelper} onClick={this.addHelper}> Convert helper </Button> </Col>
+                    <Col md={6}> <Button disabled={!canBuyHelper} onClick={this.addHelper}> Convert helper ({helperCost} pizzas) </Button> </Col>
                 </Row> 
                 <Row>
                     <Col md={12}>

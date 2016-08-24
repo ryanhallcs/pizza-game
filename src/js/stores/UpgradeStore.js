@@ -50,28 +50,6 @@ var _helpers = [
     },
     { 
         name:"Mushroom Farmer",
-        initialCost: 400,
-        enabled: false,
-        bought: false,
-        professions: [
-            'baker',
-            'gatherer'
-        ],
-        increaseRate: 2,
-    },
-    { 
-        name:"Food Cart",
-        initialCost: 500,
-        enabled: false,
-        bought: false,
-        professions: [
-            'baker',
-            'gatherer'
-        ],
-        increaseRate: 2,
-    },
-    { 
-        name:"Butcher",
         initialCost: 1000,
         enabled: false,
         bought: false,
@@ -82,7 +60,7 @@ var _helpers = [
         increaseRate: 2,
     },
     { 
-        name:"Food truck",
+        name:"Food Cart",
         initialCost: 10000,
         enabled: false,
         bought: false,
@@ -93,8 +71,30 @@ var _helpers = [
         increaseRate: 2,
     },
     { 
+        name:"Butcher",
+        initialCost: 100000,
+        enabled: false,
+        bought: false,
+        professions: [
+            'baker',
+            'gatherer'
+        ],
+        increaseRate: 2,
+    },
+    { 
+        name:"Food truck",
+        initialCost: 1000000,
+        enabled: false,
+        bought: false,
+        professions: [
+            'baker',
+            'gatherer'
+        ],
+        increaseRate: 2,
+    },
+    { 
         name:"Famers' Market Stall",
-        initialCost: 0,
+        initialCost: 10000000,
         enabled: false,
         bought: false,
         professions: [
@@ -105,7 +105,7 @@ var _helpers = [
     },
     { 
         name:"Pappy's Takeover",
-        initialCost: 0,
+        initialCost: 100000000,
         enabled: false,
         bought: false,
         professions: [
@@ -116,7 +116,7 @@ var _helpers = [
     },
     { 
         name:"Scientist",
-        initialCost: 0,
+        initialCost: 100000000,
         enabled: false,
         bought: false,
         professions: [
@@ -137,6 +137,13 @@ function buyHelper(helperName) {
 }
 
 var UpgradeStore = assign({}, EventEmitter.prototype, {
+
+    getVisibleUpgrades: function(currentPizza, currentRate) {
+        return _helpers.filter(helper => {
+            return currentPizza >= helper.initialCost ||
+                (helper.initialCost <= (60 * 60) * currentRate);
+        });
+    },
 
   /**
    * Get specific resource.

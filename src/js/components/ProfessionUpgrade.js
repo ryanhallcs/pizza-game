@@ -35,7 +35,7 @@ const ProfessionUpgrade = React.createClass({
     },
     render: function() {
         var pizzas = ResourceStore.getResource('pizza').amount;
-        var helpers = this.state.helperUpgrades;
+        var helpers = UpgradeStore.getVisibleUpgrades(pizzas, ResourceStore.getResourceRate('pizza'));
 
         return (
                 <Row>
@@ -54,7 +54,7 @@ const ProfessionUpgrade = React.createClass({
                                         <td>{helper.name}</td>
                                         <td>{helper.initialCost}</td>
                                         <td><Button disabled={pizzas < helper.initialCost || helper.bought} onClick={() => this.buyProfessionUpgrade(helper.name)}>
-                                            {helper.bought ? 'Bought' : 'Buy'}
+                                            {helper.bought ? 'Boughtt' : 'Buy'}
                                         </Button></td>
                                     </tr>
                                 )}

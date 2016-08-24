@@ -29,6 +29,12 @@ var _resources = {
         passiveCost: {
             pizza: 0.05
         },
+        costIncrease: {
+            pizza: function(currentCost) {
+                var n = Math.sqrt(currentCost * 2);
+                return Math.pow(n + 1, 2) / 2;
+            }
+        },
         ratePerSecond: 0.0,
         amount: 0.0,
     }
@@ -102,6 +108,12 @@ function alterResourceAmount(resourceName, amountDelta, considerCost = true) {
                 // don't create cycles :)
                 alterResourceAmount(resourceCostName, -targetResource.cost[resourceCostName] * amountDelta);
             }
+        }
+
+        if (targetResource.costIncrease != null) {
+            for (var key in targetResource.costIncrease) {
+                targetResource.cost[key] = targetResource.costIncrease[key](targetResource.cost[key]);
+            };
         }
 }
 
