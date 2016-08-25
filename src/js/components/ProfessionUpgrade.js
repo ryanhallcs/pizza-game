@@ -29,7 +29,7 @@ const ProfessionUpgrade = React.createClass({
         console.log('paying ' + helper.initialCost + ' pizzas ' + ' to pay for upgrade ' + helper.name);
         helper.professions.forEach(profName => {
             console.log('altering profession ' + profName + ' rate by factor ' + helper.increaseRate);
-            ResourceActions.alterProfessionRate(profName, helper.increaseRate);
+            ResourceActions.addProfessionModifier(helperName, profName, helper.increaseRate);
             UpgradeActions.buyHelperUpgrade(helperName);
         });
     },

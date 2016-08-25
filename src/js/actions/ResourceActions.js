@@ -17,9 +17,10 @@ var ResourceActions = {
             rateDelta: rateDelta
         });
     },
-    alterProfessionRate: function(professionName, rateFactor) {
+    addProfessionModifier: function(modifierName, professionName, rateFactor) {
         PizzaDispatcher.dispatch({
-            actionType: PizzaConstants.ResourceActionTypes.ALTER_PROFESSION_RATE,
+            actionType: PizzaConstants.ResourceActionTypes.ADD_PROFESSION_MODIFIER,
+            modifierName: modifierName,
             professionName: professionName,
             rateFactor: rateFactor
         });

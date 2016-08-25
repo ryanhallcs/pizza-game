@@ -8,7 +8,6 @@ var _resources = {
     ingredients: {
         name: 'ingredients',
         enabled: false,
-        ratePerSecond: 0.0,
         amount: 0.0,
     },
     pizza: {
@@ -17,7 +16,6 @@ var _resources = {
         cost: {
             ingredients: 3
         },
-        ratePerSecond: 0.0,
         amount: 0.0,
     },
     helper: {
@@ -35,7 +33,6 @@ var _resources = {
                 return Math.pow(n + 1, 2) / 2;
             }
         },
-        ratePerSecond: 0.0,
         amount: 0.0,
     }
 };
@@ -48,6 +45,7 @@ var _professions = {
             'ingredients'
         ],
         ratePerSecond: 0.2,
+        modifiers: [],
         enabled: true
     },
     baker: {
@@ -57,6 +55,7 @@ var _professions = {
             'pizza'
         ],
         ratePerSecond: 0.2,
+        modifiers: [],
         enabled: true
     },
     evangelist: {
@@ -66,6 +65,7 @@ var _professions = {
             'helpers'
         ],
         ratePerSecond: 0.2,
+        modifiers: [],
         enabled: false
     },
     researcher: {
@@ -75,17 +75,12 @@ var _professions = {
             'science'
         ],
         ratePerSecond: 0.2,
+        modifiers: [],
         enabled: false
     }
 };
 
 var CHANGE_EVENT = 'change';
-
-function alterResourceRate(resourceName, rateDelta, enabled = true) {
-        var targetResource = _resources[resourceName];
-        targetResource.ratePerSecond += rateDelta;
-        targetResource.enabled = enabled;
-}
 
 function alterResourceAmount(resourceName, amountDelta, considerCost = true) {
         if (considerCost && (!canMakeResource(resourceName, amountDelta) || amountDelta == 0)) {
@@ -122,6 +117,15 @@ function alterProfessionRate(professionName, rateFactor) {
     profession.ratePerSecond *= rateFactor;
 }
 
+function addModifier(modifierName, professionName, rateFactor) {
+    var profession = _professions[professionName];
+    profession.modifiers.push({ 
+        modifierName: modifierName,
+        rateFactor: rateFactor
+    });
+    alterProfessionRate(professionName, rateFactor);
+} 
+
 function canMakeResource(resourceName, amount) {
         var resource = _resources[resourceName];
 
@@ -148,12 +152,6 @@ function assignHelpers(professionName, amount) {
     var allowed = Math.min(helpers - assigned, amount);
     var profession = _professions[professionName];
     profession.amount += allowed;
-    
-    // var rateDelta = profession.ratePerSecond * amount;
-    // var resourcesAffected = profession.resources;
-    // resourcesAffected.forEach(res => {
-    //     alterResourceRate(res, rateDelta);
-    // });
 }
 
 var ResourceStore = assign({}, EventEmitter.prototype, {
@@ -260,13 +258,8 @@ PizzaDispatcher.register(function(action) {
         ResourceStore.emitChange();
       break;
 
-    case PizzaConstants.ResourceActionTypes.ALTER_RESOURCE_RATE:
-        alterResourceRate(action.resourceName, action.rateDelta);
-        ResourceStore.emitChange();
-      break;
-
-    case PizzaConstants.ResourceActionTypes.ALTER_PROFESSION_RATE:
-        alterProfessionRate(action.professionName, action.rateFactor);
+    case PizzaConstants.ResourceActionTypes.ADD_PROFESSION_MODIFIER:
+        addModifier(action.modifierName, action.professionName, action.rateFactor);
         ResourceStore.emitChange();
       break;
 

@@ -173,7 +173,7 @@ const PizzaState = React.createClass({
         return {
             getResource: ResourceStore.getResource,
             alterResourceAmount: ResourceActions.alterResourceAmount,
-            alterResourceRate: ResourceActions.alterResourceRate,
+            getResourceRate: ResourceStore.getResourceRate,
             getAllResources: ResourceStore.getAllResources,
             canMakeResource: ResourceStore.canMakeResource,
             professions: this.state.professions,
