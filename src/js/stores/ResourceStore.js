@@ -190,6 +190,17 @@ var ResourceStore = assign({}, EventEmitter.prototype, {
         return result;
   },
 
+  getResourcesSimple: function() {
+      return Object.keys(_resources).reduce((obj, resKey) => {
+          var res = _resources[resKey];
+          obj[res.name] = {
+              amount: res.amount,
+              rate: this.getResourceRate(res.name)
+          };
+          return obj;
+      }, {});
+  },
+
   /**
    * Get specific resource.
    * @return {object}
@@ -254,7 +265,7 @@ PizzaDispatcher.register(function(action) {
 
   switch(action.actionType) {
     case PizzaConstants.ResourceActionTypes.ALTER_RESOURCE_AMOUNT:
-        alterResourceAmount(action.resourceName, action.amountDelta);
+        alterResourceAmount(action.resourceName, action.amountDelta, action.considerCost);
         ResourceStore.emitChange();
       break;
 

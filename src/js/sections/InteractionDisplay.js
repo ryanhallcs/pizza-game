@@ -4,6 +4,7 @@ import { Jumbotron, Button, Row, Col, Table } from 'react-bootstrap'
 import ProgressButton, {STATE} from 'react-progress-button'
 import ResourceStore from "../stores/ResourceStore";
 import ProfessionUpgrade from "../components/ProfessionUpgrade";
+import Park from "../components/Park";
 
 var moment = require('moment');
 var numeral = require('numeral');
@@ -207,7 +208,8 @@ const PlaceMap = {
                 'home': Home1,
                 'home2': Home2,
                 'pappy': Pappys,
-                'warehouse': Warehouse
+                'warehouse': Warehouse,
+                'park': Park
             };
 
 const InteractionDisplay = React.createClass({

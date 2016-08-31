@@ -22,6 +22,12 @@ var _places = {
         enabled: true,
         text: "Pappy's Pizza",
         position: 2
+    },
+    park: {
+      id: 'park',
+      enabled: true,
+      text: "Humboldt Park",
+      position: 3
     }
 };
 

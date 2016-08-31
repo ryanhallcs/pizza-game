@@ -1,27 +1,12 @@
 import React from 'react';
 
-import { Button, Row, Col, Table } from 'react-bootstrap'
+import { Jumbotron, Button, Row, Col, Table } from 'react-bootstrap'
 import ResourceStore from "../stores/ResourceStore";
 import ResourceActions from "../actions/ResourceActions";
 import UpgradeStore from "../stores/UpgradeStore";
 import UpgradeActions from "../actions/UpgradeActions";
 
-const ProfessionUpgrade = React.createClass({
-    getInitialState: function() {
-        return {
-            //helperUpgrades: UpgradeStore.getAllHelperUpgrades(false)
-        };
-    },
-    componentDidMount: function() {
-        UpgradeStore.addChangeListener(this._onChange);
-    },
-    componentWillUnmount: function() {
-        UpgradeStore.removeChangeListener(this._onChange);
-    },
-    _onChange: function() {
-        //this.state.helperUpgrades = UpgradeStore.getAllHelperUpgrades(false);
-        //this.setState(this.state);
-    },
+const Park = React.createClass({
     buyProfessionUpgrade: function(helperName) {
         this.props.eventManager.publishLog('Bought ' + helperName + ' upgrade!', 'success');
         var helper = UpgradeStore.getHelperUpgrade(helperName);
@@ -34,9 +19,11 @@ const ProfessionUpgrade = React.createClass({
         });
     },
     render: function() {
-        var helpers = UpgradeStore.getVisibleUpgrades(ResourceStore.getResourcesSimple(), 'home');
-
+        var helpers = UpgradeStore.getVisibleUpgrades(ResourceStore.getResourcesSimple(), 'park');
+        
         return (
+            <Row> <Col md={12}>
+                <Row> <Col md={12}> <h1> You're at Humboldt Park! </h1> </Col> </Row>
                 <Row>
                     <Col md={12}>
                         <Table striped bordered condensed hover>
@@ -60,8 +47,10 @@ const ProfessionUpgrade = React.createClass({
                             </tbody>
                         </Table>
                     </Col>
-                </Row>);
+                </Row>
+             </Col> </Row>);
     }
 });
 
-module.exports = ProfessionUpgrade;
+
+export default Park;

@@ -3,32 +3,58 @@ var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
 var PizzaConstants = require('../constants/PizzaConstants');
 
-var _upgrades = [
+
+var _helpers = [
+
     {
         name: 'boltcutters',
-        affectedResources: [
-            'ingredients'
+        type: 'park',
+        professions: [
+            'gatherer'
         ],
         enabled: false,
-        multiple: false
+        increaseRate: 2,
+        cost: {
+            pizza: 50,
+            ingredients: 20
+        },
+        bought: false,
     },
     {
         name: 'microwave',
-        affectedResources: [
-            'pizza'
+        type: 'park',
+        professions: [
+            'baker'
         ],
         enabled: false,
-        multiple: true
-    }
-];
+        increaseRate: 2,
+        cost: {
+            pizza: 500,
+            ingredients: 400
+        },
+        bought: false,
+    },
+    {
+        name: 'wheelbarrow',
+        type: 'park',
+        professions: [
+            'gatherer'
+        ],
+        enabled: false,
+        increaseRate: 2,
+        cost: {
+            pizza: 6000,
+            ingredients: 6500
+        },
+        bought: false
+    },
 
-/*
-
-*/
-var _helpers = [
     { 
         name:"Neighbor",
-        initialCost: 10,
+        type: 'home',
+        cost: {
+            pizza: 10
+        },
         enabled: true,
         bought: false,
         professions: [
@@ -39,7 +65,10 @@ var _helpers = [
     },
     { 
         name:"Farmer",
-        initialCost: 100,
+        type: 'home',
+        cost: {
+            pizza: 100
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -50,7 +79,10 @@ var _helpers = [
     },
     { 
         name:"Mushroom Farmer",
-        initialCost: 1000,
+        type: 'home',
+        cost: {
+            pizza: 1000
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -61,7 +93,10 @@ var _helpers = [
     },
     { 
         name:"Food Cart",
-        initialCost: 10000,
+        type: 'home',
+        cost: {
+            pizza: 10000
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -72,7 +107,10 @@ var _helpers = [
     },
     { 
         name:"Butcher",
-        initialCost: 100000,
+        type: 'home',
+        cost: {
+            pizza: 100000
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -83,7 +121,10 @@ var _helpers = [
     },
     { 
         name:"Food truck",
-        initialCost: 1000000,
+        type: 'home',
+        cost: {
+            pizza: 1000000
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -94,7 +135,10 @@ var _helpers = [
     },
     { 
         name:"Famers' Market Stall",
-        initialCost: 10000000,
+        type: 'home',
+        cost: {
+            pizza: 10000000
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -105,7 +149,10 @@ var _helpers = [
     },
     { 
         name:"Pappy's Takeover",
-        initialCost: 100000000,
+        type: 'home',
+        cost: {
+            pizza: 100000000
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -116,7 +163,10 @@ var _helpers = [
     },
     { 
         name:"Scientist",
-        initialCost: 100000000,
+        type: 'home',
+        cost: {
+            pizza: 1000000000
+        },
         enabled: false,
         bought: false,
         professions: [
@@ -138,11 +188,33 @@ function buyHelper(helperName) {
 
 var UpgradeStore = assign({}, EventEmitter.prototype, {
 
-    getVisibleUpgrades: function(currentPizza, currentRate) {
-        return _helpers.filter(helper => {
-            return currentPizza >= helper.initialCost ||
-                (helper.initialCost <= (60 * 60) * currentRate);
+    getVisibleUpgrades: function(resources, type) {
+        // update based on rates upon request
+        _helpers.filter(helper => !helper.enabled).forEach(helper => {
+            var allCostsMet = true;
+            Object.keys(helper.cost).forEach(costKey => {
+                if (resources[costKey].amount >= helper.cost[costKey] || resources[costKey].rate * 60 * 60 > helper.cost[costKey]) {
+                    allCostsMet = allCostsMet && true;
+                }
+                else {
+                    allCostsMet = false;
+                }
+            });
+
+            if (allCostsMet) {
+                helper.enabled = true;
+            }
         });
+
+        return _helpers.filter(helper => {
+            if (type != undefined && helper.type != type) {
+                return false;
+            }
+            return helper.enabled;
+        }).map(helper => {
+            helper.canBuy = Object.keys(helper.cost).reduce((result, costKey) => result && resources[costKey].amount > helper.cost[costKey], true);
+            return helper;
+        });;
     },
 
   /**
@@ -157,12 +229,13 @@ var UpgradeStore = assign({}, EventEmitter.prototype, {
    * Get the entire collection of TODOs.
    * @return {object}
    */
-  getAllHelperUpgrades: function(onlyEnabled = true) {
+  getAllHelperUpgrades: function(type, onlyEnabled = true) {
+      var resultHelpers = _helpers.filter(helper => helper.type == type);
       if (onlyEnabled) {
-          return _helpers.filter(helper => helper.enabled);;
+          return resultHelpers.filter(helper => helper.enabled);
       }
       
-      return _helpers;
+      return resultHelpers;
   },
   
   emitChange: function() {

@@ -3,11 +3,12 @@ import PizzaDispatcher from "../dispatcher/PizzaDispatcher";
 import PizzaConstants from "../constants/PizzaConstants";
 
 var ResourceActions = {
-    alterResourceAmount: function(resourceName, amountDelta) {
+    alterResourceAmount: function(resourceName, amountDelta, considerCost = true) {
         PizzaDispatcher.dispatch({
             actionType: PizzaConstants.ResourceActionTypes.ALTER_RESOURCE_AMOUNT,
             resourceName: resourceName,
             amountDelta: amountDelta,
+            considerCost: considerCost
         });
     },
     alterResourceRate: function(resourceName, rateDelta) {
