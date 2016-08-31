@@ -67,7 +67,7 @@ const Home1 = React.createClass({
 
         return (
             <div>
-                <p> You're home! </p>
+                <h1> You're home! </h1>
                 {makePizzaButton}
                 {shareButton}
             </div>);
@@ -128,7 +128,7 @@ const Home2 = React.createClass({
                         </Table>
                     </Col>
                 </Row>
-                <ProfessionUpgrade eventManager={this.props.eventManager} />
+                <ProfessionUpgrade eventManager={this.props.eventManager} type='home' />
              </Col> </Row>);
     }
 });

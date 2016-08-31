@@ -17,7 +17,7 @@ const SingleResource = React.createClass({
         var displayRate = '';
         if (resource.calculatedRate != 0) {
             var sign = resource.calculatedRate > 0 ? '+' : '-';
-            displayRate = '(' + sign + numeral(resource.calculatedRate).format('0.00') + '/s) ';
+            displayRate = '' + sign + numeral(resource.calculatedRate).format('0.00') + '/s ';
         }
 
         // Profession Effects
