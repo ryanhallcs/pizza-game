@@ -5,6 +5,7 @@ import ProgressButton, {STATE} from 'react-progress-button'
 import ResourceStore from "../stores/ResourceStore";
 import ProfessionUpgrade from "../components/ProfessionUpgrade";
 import Park from "../components/Park";
+import CharacterSection from "../components/CharacterSection";
 
 var moment = require('moment');
 var numeral = require('numeral');
@@ -98,6 +99,7 @@ const Home2 = React.createClass({
         return (
             <Row> <Col md={12}>
                 <Row> <Col md={12}> <h1> You're home! </h1> </Col> </Row> 
+                <CharacterSection place='home' />
                 <Row> 
                     <Col md={6}> <h3> Unassigned: {unassigned} </h3> </Col>
                     <Col md={6}> <Button disabled={!canBuyHelper} onClick={this.addHelper}> Convert helper ({helperCost} pizzas) </Button> </Col>
@@ -204,18 +206,10 @@ const Warehouse = React.createClass({
     }
 });
 
-const PlaceMap = {
-                'home': Home1,
-                'home2': Home2,
-                'pappy': Pappys,
-                'warehouse': Warehouse,
-                'park': Park
-            };
-
 const InteractionDisplay = React.createClass({
     getInitialState: function() {
         return {
-            resources: ResourceStore.getAllResources()
+            resources: ResourceStore.getAllResources(),
         };
     },
     componentDidMount: function() {
@@ -229,14 +223,23 @@ const InteractionDisplay = React.createClass({
         this.setState(this.state);
     },
     render: function() {
-        var Child = PlaceMap[this.props.currentDisplay];
-
+        var child = this.props.stackManager.currentDisplay();
+        var childDisplay = child == null ? '' : child.display;
+        
         return (
             <Row className='main-layout-border full-height'>
-                <Child eventManager={this.props.eventManager} resourceManager={this.props.resourceManager} />
+                {childDisplay}
             </Row>
         );
     }
 });
+
+module.exports = {
+    InteractionDisplay,
+    Home1,
+    Home2,
+    Warehouse,
+    Pappys
+};
 
 export default InteractionDisplay;

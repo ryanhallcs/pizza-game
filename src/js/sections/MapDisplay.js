@@ -11,7 +11,7 @@ const MapDisplay = React.createClass({
                 {this.props.places.map(place => {
                     return (
                         <Col key={place.id} md={colWidth}>
-                            <Button bsStyle="warning" bsSize="small" onClick={() => this.props.changeInteractionDisplay(place.id)}> {place.text} </Button>
+                            <Button bsStyle="warning" bsSize="small" onClick={() => this.props.stackManager.changeToDisplay(place.id)}> {place.text} </Button>
                         </Col>
                     );
                 })}

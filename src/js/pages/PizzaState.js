@@ -1,9 +1,8 @@
 import React from 'react';
 
 import ResourceDisplay from "../sections/ResourceDisplay";
-import EventDisplay from "../sections/EventDisplay"
-import InteractionDisplay from "../sections/InteractionDisplay"
-import MapDisplay from "../sections/MapDisplay"
+import EventDisplay from "../sections/EventDisplay";
+import MapDisplay from "../sections/MapDisplay";
 import TriggerSystem from "../components/TriggerSystem";
 import { Row, Col } from 'react-bootstrap';
 
@@ -14,6 +13,11 @@ import FlagActions from "../actions/FlagActions";
 import MapStore from "../stores/MapStore";
 import MapActions from "../actions/MapActions";
 import EventActions from "../actions/EventActions";
+
+import { Home1, Home2, Pappys, Warehouse, InteractionDisplay } from "../sections/InteractionDisplay";
+import Park from "../components/Park";
+import CharacterSection from "../components/CharacterSection";
+import SingleCharacter from "../components/SingleCharacter";
 
 const Triggers = [
     /*
@@ -73,6 +77,14 @@ const Events = {
     }
 }
 
+const _placeMap = {
+                'home': Home1,
+                'home2': Home2,
+                'pappy': Pappys,
+                'warehouse': Warehouse,
+                'park': Park
+            };
+
 function generateId() {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
@@ -88,14 +100,13 @@ const PizzaState = React.createClass({
 
         setInterval(ResourceStore.tick, 100); // updates per tenth second
         setInterval(this.intervalTriggerRunner, 500);
-
+        console.log('setting state');
         return {
             triggerSystem: new TriggerSystem(),
-            interactionDisplay: 'home',
             triggerList: Triggers,
             possibleEvents: Events,
             newEvents: [],
-            //helpers: Helpers,
+            displayStack: [],
 
             resources: ResourceStore.getAllResources().reduce((a,b) => {
                 a[b.name] = b;
@@ -106,9 +117,10 @@ const PizzaState = React.createClass({
             professions: ResourceStore.getAllProfessions()
         }
     },
-
     componentDidMount: function() {
         //ResourceStore.addChangeListener(this._onChangeResource);
+        this.pushDisplayStack('home');
+
         FlagStore.addChangeListener(this._onChangeFlag);
         MapStore.addChangeListener(this._onChangeMap);
     },
@@ -153,21 +165,49 @@ const PizzaState = React.createClass({
             this.setState(this.state);
         }
     },
-    changeInteractionDisplay: function(newDisplay) {
-        if (newDisplay != this.state.interactionDisplay) {
-            this.state.interactionDisplay = newDisplay;
-            this.setState(this.state);
+    pushDisplayStack: function(name, display = null, context = null) {
+        console.log('pushing: ' + name + ' to stack');
+        if (this.state.displayStack.length > 0) {
+            var current = this.state.displayStack[this.state.displayStack.length - 1];
+            if (current.name == name) {
+                return;
+            }
         }
+
+        var DisplayType = display;
+        if (DisplayType == null) {
+            DisplayType = _placeMap[name];
+        }
+
+        var displayElement = <DisplayType resourceManager={this.resourceManagerFactory()} stackManager={this.stackManagerFactory()} eventManager={this.eventManagerFactory()} context={context} />
+        this.state.displayStack.push({
+            name: name,
+            display: displayElement
+        });
+        this.setState(this.state);
     },
-    unlockUpgrade(type, name) {
-        // switch (type) {
-        //     case 'helper':
-        //         var upgrade = this.state.helpers.find(helper => helper.name == name);
-        //         if (upgrade == null) {
-        //             console.log('could not find helper ' + name);
-        //             return;
-        //         }
-        // }
+    changeToDisplay: function(name, display = null) {
+        this.state.displayStack.pop();
+        this.pushDisplayStack(name, display);
+    },
+    popDisplayStack: function() {
+        console.log('poppin stack!');
+        this.state.displayStack.pop();
+        this.setState(this.state);
+    },
+    currentDisplay: function() {
+        if (this.state.displayStack.length == 0) {
+            return null;
+        }
+        return this.state.displayStack[this.state.displayStack.length - 1];
+    },
+    stackManagerFactory: function() {
+        return {
+            pushDisplay: this.pushDisplayStack,
+            changeToDisplay: this.changeToDisplay,
+            popDisplay: this.popDisplayStack,
+            currentDisplay: this.currentDisplay
+        }
     },
     resourceManagerFactory: function () {
         return {
@@ -202,7 +242,7 @@ const PizzaState = React.createClass({
                     <ResourceDisplay eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} />
                 </Col>
                 <Col md={4}>
-                    <InteractionDisplay eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} currentDisplay={this.state.interactionDisplay} />
+                    <InteractionDisplay stackManager={this.stackManagerFactory()} eventManager={this.eventManagerFactory()} resourceManager={this.resourceManagerFactory()} />
                 </Col>
                 <Col md={5}>
                     <Row className='interaction main-layout-border'>
@@ -210,7 +250,7 @@ const PizzaState = React.createClass({
                             <EventDisplay />
                         </Col>
                     </Row>
-                    <MapDisplay places={this.state.places} changeInteractionDisplay={this.changeInteractionDisplay} />
+                    <MapDisplay places={this.state.places} stackManager={this.stackManagerFactory()} />
                 </Col>
             </Row>
         );

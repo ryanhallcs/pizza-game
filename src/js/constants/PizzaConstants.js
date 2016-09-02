@@ -26,6 +26,10 @@ module.exports = {
   UpgradeActionTypes: keyMirror({
       ENABLE_HELPER: null,
       BUY_HELPER: null
+  }),
+
+  CharacterActionTypes: keyMirror({
+      ENABLE_CHARACTER: null
   })
 
 };
