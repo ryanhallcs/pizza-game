@@ -48,6 +48,67 @@ var _helpers = [
         },
         bought: false
     },
+    
+    {
+        name: 'Tote bags',
+        type: 'old-jared',
+        professions: [ 'gatherer' ],
+        enabled: false,
+        increaseRate: 2,
+        cost: {
+            pizza: 100,
+            ingredients: 500
+        },
+        bought: false
+    },
+    {
+        name: 'Backpacks',
+        type: 'laura-washington',
+        professions: [ 'gatherer' ],
+        enabled: false,
+        increaseRate: 2,
+        cost: {
+            pizza: 600,
+            ingredients: 850
+        },
+        bought: false
+    },
+    {
+        name: 'Bicycles',
+        type: 'old-jared',
+        professions: [ 'gatherer' ],
+        enabled: false,
+        increaseRate: 2,
+        cost: {
+            pizza: 1000,
+            ingredients: 5000
+        },
+        bought: false
+    },
+    {
+        name: 'Drones',
+        type: 'laura-washington',
+        professions: [ 'gatherer' ],
+        enabled: false,
+        increaseRate: 2,
+        cost: {
+            pizza: 9000,
+            ingredients: 7500
+        },
+        bought: false
+    },
+    {
+        name: 'Dumptrucks',
+        type: 'old-jared',
+        professions: [ 'gatherer' ],
+        enabled: false,
+        increaseRate: 2,
+        cost: {
+            pizza: 10000,
+            ingredients: 50000
+        },
+        bought: false
+    },
 
     { 
         name:"Neighbor",

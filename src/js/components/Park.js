@@ -9,7 +9,7 @@ const Park = React.createClass({
             <div>
                 <h1>You're at Humboldt Park!</h1>
                 &nbsp;
-                <CharacterSection place="park" stackManager={this.props.stackManager} />
+                <CharacterSection place="park" stackManager={this.props.stackManager} resourceManager={this.props.resourceManager} />
                 <ProfessionUpgrade eventManager={this.props.eventManager} type='park' />
             </div>
         );

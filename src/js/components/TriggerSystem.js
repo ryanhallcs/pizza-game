@@ -1,18 +1,18 @@
 
 class TriggerSystem {
-    checkTriggers(triggerList, pizzaState) {
+    checkTriggers(triggerList, pizzaState, stackManager) {
 
         // return all triggers 
         return triggerList.filter(function(trigger) {
             return !trigger.hasTriggered 
-                && this.checkResources(trigger, pizzaState)
-                && this.checkDisplay(trigger, pizzaState)
-                && this.checkStats(trigger, pizzaState)
-                && this.checkNewEvents(trigger, pizzaState);
+                && this.checkResources(trigger, pizzaState, stackManager)
+                && this.checkDisplay(trigger, pizzaState, stackManager)
+                && this.checkStats(trigger, pizzaState, stackManager)
+                && this.checkNewEvents(trigger, pizzaState, stackManager);
         }.bind(this));
     }
 
-    checkResources(trigger, pizzaState) {
+    checkResources(trigger, pizzaState, stackManager) {
         if (trigger.resources == null) {
             return true;
         }
@@ -26,18 +26,18 @@ class TriggerSystem {
         return notMet.length == 0;
     }
 
-    checkDisplay(trigger, pizzaState) {
+    checkDisplay(trigger, pizzaState, stackManager) {
         if (trigger.currentDisplay == null || trigger.currentDisplay == '') {
             return true;
         }
-        return trigger.currentDisplay == pizzaState.interactionDisplay;
+        return trigger.currentDisplay == pizzaState.displayStack[pizzaState.displayStack.length - 1].name;
     }
 
-    checkStats(trigger, pizzaState) {
+    checkStats(trigger, pizzaState, stackManager) {
         return true; // todo
     }
 
-    checkNewEvents(trigger, pizzaState) {
+    checkNewEvents(trigger, pizzaState, stackManager) {
         if (trigger.type != 'customEvent') {
             return true;
         }

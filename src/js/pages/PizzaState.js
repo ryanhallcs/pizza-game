@@ -68,11 +68,11 @@ const Events = {
     'publish-stream': function(trigger, pizzaState) {
         EventActions.publish(trigger.resultContext, 'info');
     },
-    'add-roommate': function(trigger, pizzaState) {
+    'add-roommate': function(trigger, pizzaState, stackManager) {
         trigger.hasTriggered = true;
         //pizzaState.helpers[0].enabled = true;
-        pizzaState.interactionDisplay = 'home2';
         MapActions.changePlace('home', 'home2');
+        stackManager.changeToDisplay('home2');
         EventActions.publish('Wow, this pizza is great! You need help making more?', 'success');
     }
 }
@@ -118,14 +118,14 @@ const PizzaState = React.createClass({
         }
     },
     componentDidMount: function() {
-        //ResourceStore.addChangeListener(this._onChangeResource);
+        ResourceStore.addChangeListener(this._onChangeResource);
         this.pushDisplayStack('home');
 
         FlagStore.addChangeListener(this._onChangeFlag);
         MapStore.addChangeListener(this._onChangeMap);
     },
     componentWillUnmount: function() {
-        //ResourceStore.removeChangeListener(this._onChangeResource);
+        ResourceStore.removeChangeListener(this._onChangeResource);
         FlagStore.removeChangeListener(this._onChangeFlag);
         MapStore.removeChangeListener(this._onChangeMap);
     },
@@ -145,10 +145,10 @@ const PizzaState = React.createClass({
         this.setState(this.state);
     },
     intervalTriggerRunner: function() {
-        var newTriggers = this.state.triggerSystem.checkTriggers(this.state.triggerList, this.state);
+        var newTriggers = this.state.triggerSystem.checkTriggers(this.state.triggerList, this.state, this.stackManagerFactory());
         if (newTriggers.length != 0) {
             newTriggers.forEach(function(newTrigger) {
-                this.state.possibleEvents[newTrigger.result](newTrigger, this.state);
+                this.state.possibleEvents[newTrigger.result](newTrigger, this.state, this.stackManagerFactory());
             }.bind(this));
 
             // get all customEvents and remove new events that have been triggered

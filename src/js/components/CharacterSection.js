@@ -10,7 +10,7 @@ const CharacterSection = React.createClass({
   },
   render: function() {
     var characters = CharacterStore.getCharacters(this.props.place);
-    console.log(JSON.stringify(characters));
+    //console.log(JSON.stringify(characters));
     var colWidth = Math.floor(12.0 / characters.length);
 
     return (

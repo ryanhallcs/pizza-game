@@ -41,10 +41,9 @@ const Home1 = React.createClass({
         }
 
         setTimeout(() => {
-            this.setState({
-                makePizzaState: STATE.NOTHING
-            });
-        }, 2000);
+            this.state.makePizzaState = STATE.NOTHING;
+            this.setState(this.state);
+        }, 500);
     },
     render: function() {
         var hasMadeWorkPizza = this.props.eventManager.flags['work-pizza'];
@@ -87,6 +86,15 @@ const Home2 = React.createClass({
     addHelper: function() {
         this.props.resourceManager.alterResourceAmount('helper', 1);
     },
+    componentDidMount: function() {
+        ResourceStore.addChangeListener(this._onChangeResource);
+    },
+    componentWillUnmount: function() {
+        ResourceStore.removeChangeListener(this._onChangeResource);
+    },
+    _onChangeResource: function() {
+        this.setState(this.state);
+    },
     render: function() {
         var total = Object.keys(this.props.resourceManager.professions).reduce( (a, b) =>
             a + this.props.resourceManager.professions[b].amount
@@ -99,7 +107,7 @@ const Home2 = React.createClass({
         return (
             <Row> <Col md={12}>
                 <Row> <Col md={12}> <h1> You're home! </h1> </Col> </Row> 
-                <CharacterSection place='home' />
+                <CharacterSection place='home' stackManager={this.props.stackManager} />
                 <Row> 
                     <Col md={6}> <h3> Unassigned: {unassigned} </h3> </Col>
                     <Col md={6}> <Button disabled={!canBuyHelper} onClick={this.addHelper}> Convert helper ({helperCost} pizzas) </Button> </Col>
@@ -145,6 +153,15 @@ const Pappys = React.createClass({
         this.props.resourceManager.alterResourceAmount(resourceName, 1);
         this.props.eventManager.setFlag('work-ingredients');
     },
+    componentDidMount: function() {
+        ResourceStore.addChangeListener(this._onChangeResource);
+    },
+    componentWillUnmount: function() {
+        ResourceStore.removeChangeListener(this._onChangeResource);
+    },
+    _onChangeResource: function() {
+        this.setState(this.state);
+    },
     makePizzaClick: function() {
         this.setState({makePizzaState: STATE.LOADING});
         this.props.eventManager.setFlag('work-pizza');
@@ -155,7 +172,8 @@ const Pappys = React.createClass({
         }, 500);
     },
     render: function() {
-        var disableMakePizza = !this.props.resourceManager.canMakeResource('pizza', 1);
+        
+        var disableMakePizza = !ResourceStore.canMakeResource('pizza', 1);
 
         var makePizzaState = this.state.makePizzaState;
         if (disableMakePizza && makePizzaState == STATE.NOTHING) {
@@ -177,8 +195,7 @@ const Warehouse = React.createClass({
     getInitialState: function() {
         return {
             suppliesStart: null,
-            suppliesState: STATE.NOTHING,
-            suppliesCooldown: 2000
+            suppliesState: STATE.NOTHING
         };
     },
     gatherResources: function() {
