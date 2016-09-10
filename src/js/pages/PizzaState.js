@@ -217,7 +217,8 @@ const PizzaState = React.createClass({
             getAllResources: ResourceStore.getAllResources,
             canMakeResource: ResourceStore.canMakeResource,
             professions: this.state.professions,
-            assignHelpers: ResourceActions.assignHelpers
+            assignHelpers: ResourceActions.assignHelpers,
+            getRateDetails: ResourceStore.getRateDetails
         };
     },
     broadcast: function(eventName, id) {

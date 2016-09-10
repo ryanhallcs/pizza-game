@@ -13,6 +13,7 @@ const SingleResource = React.createClass({
         }
 
         var displayAmount = numeral(resource.amount).format('0.00');
+        var rateSummary = this.props.resourceManager.getRateDetails(resource.name);
  
         var displayRate = '';
         if (resource.calculatedRate != 0) {
@@ -20,36 +21,46 @@ const SingleResource = React.createClass({
             displayRate = '' + sign + numeral(resource.calculatedRate).format('0.00') + '/s ';
         }
 
-        // Profession Effects
-        var professions = this.props.resourceManager.professions;
-        var relevantProfessions = Object.keys(professions).filter(prof => professions[prof].resources.find(name => name == resource.name) != undefined);
-        var amountSummary = relevantProfessions.map(prof => {
-            var profObj = professions[prof];
-            return '' + profObj.amount + ' ' + profObj.name + 's'
+        var professionSummary = rateSummary.professions.map(prof => {
+            return '' + prof.amount + ' ' + prof.name + 's: +' + numeral(prof.ratePerSecond * prof.amount).format('0.00') + '/s';
         }).join('\n');
 
-        // Modifier Effects
-        var relevantModifiers = relevantProfessions.reduce((prev, cur) =>
-            { 
-                var prof = professions[cur];
-                prof.modifiers.forEach(mod => prev[mod.modifierName] = mod.rateFactor);
-                return prev;
-            }, {});
-        var modifierSummary = Object.keys(relevantModifiers).map(modKey => modKey + ': x' + relevantModifiers[modKey]).join('\n');
+        var modifierSummary = rateSummary.upgrades.join(', ');
 
-        // Higher Level Resource Effects
-        var relevantResources = this.props.resourceManager.getAllResources().filter(res => this.props.resourceManager.getResourceRate(res.name) > 0 
-            && res.amount > 0 
-            && res.cost != undefined 
-            && res.cost.hasOwnProperty(resource.name));
-        var costSummary = relevantResources.map(res => res.name + ': -' + numeral(res.cost[resource.name] 
-            * this.props.resourceManager.getResourceRate(res.name)).format('0.00')).join(', ');
+        var costSummary = rateSummary.costs.map(cost => Object.keys(cost)[0] + ': -' + numeral(cost[Object.keys(cost)[0]]).format('0.00') + '/s');
+
+        var passiveCostSummary = rateSummary.passiveCosts.map(pCost => Object.keys(pCost)[0] + ': -' + numeral(pCost[Object.keys(pCost)[0]]).format('0.00') + '/s');
+        // // Profession Effects
+        // var professions = this.props.resourceManager.professions;
+        // var relevantProfessions = Object.keys(professions).filter(prof => professions[prof].resources.find(name => name == resource.name) != undefined);
+        // var amountSummary = relevantProfessions.map(prof => {
+        //     var profObj = professions[prof];
+        //     return '' + profObj.amount + ' ' + profObj.name + 's'
+        // }).join('\n');
+
+        // // Modifier Effects
+        // var relevantModifiers = relevantProfessions.reduce((prev, cur) =>
+        //     { 
+        //         var prof = professions[cur];
+        //         prof.modifiers.forEach(mod => prev[mod.modifierName] = mod.rateFactor);
+        //         return prev;
+        //     }, {});
+        // var modifierSummary = Object.keys(relevantModifiers).map(modKey => modKey + ': x' + relevantModifiers[modKey]).join('\n');
+
+        // // Higher Level Resource Effects
+        // var relevantResources = this.props.resourceManager.getAllResources().filter(res => this.props.resourceManager.getResourceRate(res.name) > 0 
+        //     && res.amount > 0 
+        //     && res.cost != undefined 
+        //     && res.cost.hasOwnProperty(resource.name));
+        // var costSummary = relevantResources.map(res => res.name + ': -' + numeral(res.cost[resource.name] 
+        //     * this.props.resourceManager.getResourceRate(res.name)).format('0.00')).join(', ');
 
         var resourceSummary = (
             <ul>
-                <li>Professions: {amountSummary}</li>
+                <li>Professions: {professionSummary}</li>
                 <li>Modifiers: {modifierSummary}</li>
                 <li>Costs: {costSummary}</li>
+                <li>Passive costs: {passiveCostSummary}</li>
             </ul>
         );
 

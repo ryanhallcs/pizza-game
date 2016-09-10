@@ -83,33 +83,33 @@ var _professions = {
 var CHANGE_EVENT = 'change';
 
 function alterResourceAmount(resourceName, amountDelta, considerCost = true) {
-        if (considerCost && (!canMakeResource(resourceName, amountDelta) || amountDelta == 0)) {
-            return;
-        }
+    if (considerCost && (!canMakeResource(resourceName, amountDelta) || amountDelta == 0)) {
+        return;
+    }
 
-        var targetResource = _resources[resourceName];
-        targetResource.amount += amountDelta;
-        
-        if (targetResource.amount < 0) {
-            targetResource.amount = 0;
-        }
+    var targetResource = _resources[resourceName];
+    targetResource.amount += amountDelta;
+    
+    if (targetResource.amount < 0) {
+        targetResource.amount = 0;
+    }
 
-        if (amountDelta > 0) {
-            targetResource.enabled = true;
-        }
+    if (amountDelta > 0) {
+        targetResource.enabled = true;
+    }
 
-        if (targetResource.cost != null && considerCost && amountDelta > 0) {   
-            for (var resourceCostName in targetResource.cost) {
-                // don't create cycles :)
-                alterResourceAmount(resourceCostName, -targetResource.cost[resourceCostName] * amountDelta);
-            }
+    if (targetResource.cost != null && considerCost && amountDelta > 0) {   
+        for (var resourceCostName in targetResource.cost) {
+            // don't create cycles :)
+            alterResourceAmount(resourceCostName, -targetResource.cost[resourceCostName] * amountDelta);
         }
+    }
 
-        if (targetResource.costIncrease != null) {
-            for (var key in targetResource.costIncrease) {
-                targetResource.cost[key] = targetResource.costIncrease[key](targetResource.cost[key]);
-            };
-        }
+    if (targetResource.costIncrease != null) {
+        for (var key in targetResource.costIncrease) {
+            targetResource.cost[key] = targetResource.costIncrease[key](targetResource.cost[key]);
+        };
+    }
 }
 
 function alterProfessionRate(professionName, rateFactor) {
@@ -179,15 +179,77 @@ var ResourceStore = assign({}, EventEmitter.prototype, {
   },
 
   getResourceRate: function(resourceName) {
-        var result = 0;
-        Object.keys(_professions).forEach(profName => {
-            var profession = _professions[profName];
-            var relevantResource = profession.resources.find(res => res == resourceName);
-            if (relevantResource != undefined && profession.amount != 0) {
-                result += profession.ratePerSecond * profession.amount;
-            }
+    var result = 0;
+    // Object.keys(_professions).forEach(profName => {
+    //     var profession = _professions[profName];
+    //     var relevantResource = profession.resources.find(res => res == resourceName);
+    //     if (relevantResource != undefined && profession.amount != 0) {
+    //         result += profession.ratePerSecond * profession.amount;
+    //     }
+    // });
+    var details = this.getRateDetails(resourceName);
+    var profSum = details.professions.reduce((a, b) => a + b.ratePerSecond * b.amount, 0);
+    var costSum = details.costs.reduce((a, b) => a + b[Object.keys(b)[0]], 0);
+    var passiveSum = details.passiveCosts.reduce((a, b) => a + b[Object.keys(b)[0]], 0);
+    return profSum - costSum - passiveSum;
+  },
+
+  getNonPassiveResourceRate: function(resourceName) {
+    var result = 0;
+    // Object.keys(_professions).forEach(profName => {
+    //     var profession = _professions[profName];
+    //     var relevantResource = profession.resources.find(res => res == resourceName);
+    //     if (relevantResource != undefined && profession.amount != 0) {
+    //         result += profession.ratePerSecond * profession.amount;
+    //     }
+    // });
+    var details = this.getRateDetails(resourceName);
+    var profSum = details.professions.reduce((a, b) => a + b.ratePerSecond * b.amount, 0);
+    var costSum = details.costs.reduce((a, b) => a + b[Object.keys(b)[0]], 0);
+    return profSum - costSum;
+  },
+
+  getRateDetails: function(resourceName) {
+      var res = {
+          professions: [],
+          upgrades: [],
+          costs: [],
+          passiveCosts: []
+      };
+
+      var upgradeSet = {};
+
+      // professions:
+        res.professions = Object.keys(_professions).filter(prof => _professions[prof].resources.find(name => name == resourceName) != undefined).map(prof => _professions[prof]);
+
+      // upgrades:
+        res.professions.forEach(prof => {
+            prof.modifiers.forEach(mod => upgradeSet[mod.modifierName] = 1);
         });
-        return result;
+      res.upgrades = Object.keys(upgradeSet);
+
+      // production costs:
+      var allResources = Object.keys(_resources).map(key => _resources[key]);
+      var relevantResources = allResources.filter(res => res.amount > 0 
+            && res.cost != undefined 
+            && res.cost.hasOwnProperty(resourceName));
+        res.costs = relevantResources.map(resource => {
+            var simplifiedCost = {};
+            simplifiedCost[resource.name] = ResourceStore.getNonPassiveResourceRate(resource.name) * resource.cost[resourceName];
+            return simplifiedCost;
+        });
+
+      // passive costs:
+      var relevantPassiveResources = allResources.filter(res => res.amount > 0 
+            && res.passiveCost != undefined 
+            && res.passiveCost.hasOwnProperty(resourceName));
+        res.passiveCosts = relevantPassiveResources.map(resource => {
+            var simplifiedCost = {};
+            simplifiedCost[resource.name] = resource.amount * resource.passiveCost[resourceName];
+            return simplifiedCost;
+        });
+
+      return res;
   },
 
   getResourcesSimple: function() {
@@ -222,6 +284,13 @@ var ResourceStore = assign({}, EventEmitter.prototype, {
                 });
             }
         });
+        Object.keys(_resources)
+            .filter(res => _resources[res].amount > 0 && _resources[res].passiveCost != null)
+            .forEach(res => 
+                Object.keys(_resources[res].passiveCost)
+                .forEach(pCost => {
+                   alterResourceAmount(pCost, -(_resources[res].passiveCost[pCost] * _resources[res].amount) / 10.0, false); 
+                }))
         ResourceStore.emitChange();
   },
 
