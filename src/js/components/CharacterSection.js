@@ -3,10 +3,12 @@ import React from 'react';
 import { Jumbotron, Button, Row, Col, Table, Popover, OverlayTrigger } from 'react-bootstrap'
 import CharacterStore from "../stores/CharacterStore";
 import SingleCharacter from "./SingleCharacter";
+import DisplayActions from "../actions/DisplayActions";
 
 const CharacterSection = React.createClass({
   switchToCharacterScreen: function(character) {
-    this.props.stackManager.pushDisplay(character.name, SingleCharacter, character);
+    var characterJsx = <SingleCharacter context={character} />;
+    DisplayActions.pushDisplay(character.name, characterJsx);
   },
   render: function() {
     var characters = CharacterStore.getCharacters(this.props.place);

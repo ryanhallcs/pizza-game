@@ -3,6 +3,8 @@ import { Row, Col, Button, Table } from 'react-bootstrap';
 import SingleResource from "../components/SingleResource";
 import ResourceStore from "../stores/ResourceStore";
 import ResourceActions from "../actions/ResourceActions";
+import TriggerStore from "../stores/TriggerStore";
+import FlagStore from "../stores/FlagStore";
 
 const ResourceDisplay = React.createClass({
     getInitialState: function() {
@@ -22,23 +24,22 @@ const ResourceDisplay = React.createClass({
     },
     eatPizza: function() {
         ResourceActions.alterResourceAmount('pizza', -1);
-        this.props.eventManager.broadcast('eat-pizza');
+        TriggerStore.pushGameEvent('eat-pizza');
     },
     render: function() {
         var allResources = this.state.resources;
-        var alterResourceRate = ResourceActions.alterResourceRate;
 
         var buttons = [];
         var pizzaResource = allResources.find(res => res.name == 'pizza');
         if (pizzaResource.amount > 0) {
-            buttons.push(<Button key='eat-pizza' onClick={this.eatPizza}>Eat Pizza</Button>);
+            buttons.push(<Button key='eat-pizza' onClick={this.eatPizza} >Eat Pizza</Button>);
         }
 
         var devMode = true;
         var flags = [];
         if (devMode) {
-            flags = Object.keys(this.props.eventManager.flags).filter(function(flagName) {
-                return this.props.eventManager.flags[flagName];
+            flags = Object.keys(FlagStore.getAllFlags()).filter(function(flagName) {
+                return FlagStore.getFlag(flagName);
             }.bind(this));
         }
 
@@ -54,7 +55,7 @@ const ResourceDisplay = React.createClass({
                     </thead>
                     <tbody>
                     {this.state.resources.map(resource =>
-                        <SingleResource key={resource.name} resource={resource} resourceManager={this.props.resourceManager} />
+                        <SingleResource key={resource.name} resource={resource} />
                     )}
                     </tbody>
                 </Table>

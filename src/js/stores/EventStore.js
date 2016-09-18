@@ -43,6 +43,10 @@ var EventStore = assign({}, EventEmitter.prototype, {
     this.emit(CHANGE_EVENT);
   },
 
+  publish: function(body, type) {
+      publish(body, type);
+  },
+
   /**
    * @param {function} callback
    */

@@ -10,6 +10,7 @@ var _characters = [
         name: 'laura-washington',
         description: 'A friendly parkgoer',
         place: 'park',
+        pizzasGiven: 0,
         sayings: [
           {
             id: 'lw-hi-1',
@@ -36,6 +37,7 @@ var _characters = [
         name: 'old-jared',
         description: 'A curmudgeonly old man',
         place: 'park',
+        pizzasGiven: 0,
         sayings: [
           {
             id: 'oj-hi-1',
@@ -56,12 +58,19 @@ var _characters = [
             type: 'greeting'
           },
         ],
+        triggers: [
+          {
+            pizzas: 10,
+            event: ''
+          }
+        ],
         enabled: true,
     },
     {
         name: 'bonnie-wreck',
         description: 'Your roommate for better or worse',
         place: 'home',
+        pizzasGiven: 0,
         sayings: [
           {
             id: 'bw-hi-1',

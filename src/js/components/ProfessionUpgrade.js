@@ -5,10 +5,25 @@ import ResourceStore from "../stores/ResourceStore";
 import ResourceActions from "../actions/ResourceActions";
 import UpgradeStore from "../stores/UpgradeStore";
 import UpgradeActions from "../actions/UpgradeActions";
+import EventActions from "../actions/EventActions";
 
 const ProfessionUpgrade = React.createClass({
+    getInitialState: function() {
+        return {};
+    },
+    componentDidMount: function() {
+        ResourceStore.addChangeListener(this._onChange);
+        UpgradeStore.addChangeListener(this._onChange);
+    },
+    componentWillUnmount: function() {
+        ResourceStore.removeChangeListener(this._onChange);
+        UpgradeStore.removeChangeListener(this._onChange);
+    },
+    _onChange: function() {
+        this.setState(this.state);
+    },
     buyProfessionUpgrade: function(helperName) {
-        this.props.eventManager.publishLog('Bought ' + helperName + ' upgrade!', 'success');
+        EventActions.publish('Bought ' + helperName + ' upgrade!', 'success');
         var helper = UpgradeStore.getHelperUpgrade(helperName);
         Object.keys(helper.cost).forEach(costKey => ResourceActions.alterResourceAmount(costKey, -helper.cost[costKey], false));
         console.log('paying ' + Object.keys(helper.cost).map(costKey => helper.cost[costKey] + ' ' + costKey).join(', ') + ' to pay for upgrade ' + helper.name);

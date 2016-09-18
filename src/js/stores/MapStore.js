@@ -51,6 +51,14 @@ var MapStore = assign({}, EventEmitter.prototype, {
     return _places[place];
   },
 
+  enablePlace: function(placeName) {
+    enablePlace(placeName);
+  },
+
+  changePlace: function(placeName, newId) {
+    changePlace(placeName, newId);
+  },
+
   /**
    * Get the entire collection of TODOs.
    * @return {object}

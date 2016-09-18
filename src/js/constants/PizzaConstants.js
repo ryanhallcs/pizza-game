@@ -30,6 +30,12 @@ module.exports = {
 
   CharacterActionTypes: keyMirror({
       ENABLE_CHARACTER: null
-  })
+  }),
+
+  DisplayActionTypes: keyMirror({
+      PUSH_DISPLAY: null,
+      POP_DISPLAY: null,
+      CHANGE_DISPLAY: null
+  }),
 
 };

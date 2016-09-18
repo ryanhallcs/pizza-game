@@ -1,10 +1,24 @@
 import React from 'react';
 import { Button, Popover, OverlayTrigger } from 'react-bootstrap';
+import ResourceStore from "../stores/ResourceStore";
+import ResourceActions from "../actions/ResourceActions";
 var numeral = require('numeral');
 
 const SingleResource = React.createClass({
+    getInitialState: function() {
+        return {};
+    },
+    componentDidMount: function() {
+        ResourceStore.addChangeListener(this._onChangeResource);
+    },
+    componentWillUnmount: function() {
+        ResourceStore.removeChangeListener(this._onChangeResource);
+    },
+    _onChangeResource: function() {
+        this.setState(this.state);
+    },
     changeRate: function(rateDelta) {
-        this.props.resourceManager.alterResourceRate(this.props.resource.name, rateDelta);
+        ResourceActions.alterResourceRate(this.props.resource.name, rateDelta);
     },
     render: function() {
         var resource = this.props.resource;
@@ -13,7 +27,7 @@ const SingleResource = React.createClass({
         }
 
         var displayAmount = numeral(resource.amount).format('0.00');
-        var rateSummary = this.props.resourceManager.getRateDetails(resource.name);
+        var rateSummary = ResourceStore.getRateDetails(resource.name);
  
         var displayRate = '';
         if (resource.calculatedRate != 0) {
@@ -26,34 +40,8 @@ const SingleResource = React.createClass({
         }).join('\n');
 
         var modifierSummary = rateSummary.upgrades.join(', ');
-
         var costSummary = rateSummary.costs.map(cost => Object.keys(cost)[0] + ': -' + numeral(cost[Object.keys(cost)[0]]).format('0.00') + '/s');
-
         var passiveCostSummary = rateSummary.passiveCosts.map(pCost => Object.keys(pCost)[0] + ': -' + numeral(pCost[Object.keys(pCost)[0]]).format('0.00') + '/s');
-        // // Profession Effects
-        // var professions = this.props.resourceManager.professions;
-        // var relevantProfessions = Object.keys(professions).filter(prof => professions[prof].resources.find(name => name == resource.name) != undefined);
-        // var amountSummary = relevantProfessions.map(prof => {
-        //     var profObj = professions[prof];
-        //     return '' + profObj.amount + ' ' + profObj.name + 's'
-        // }).join('\n');
-
-        // // Modifier Effects
-        // var relevantModifiers = relevantProfessions.reduce((prev, cur) =>
-        //     { 
-        //         var prof = professions[cur];
-        //         prof.modifiers.forEach(mod => prev[mod.modifierName] = mod.rateFactor);
-        //         return prev;
-        //     }, {});
-        // var modifierSummary = Object.keys(relevantModifiers).map(modKey => modKey + ': x' + relevantModifiers[modKey]).join('\n');
-
-        // // Higher Level Resource Effects
-        // var relevantResources = this.props.resourceManager.getAllResources().filter(res => this.props.resourceManager.getResourceRate(res.name) > 0 
-        //     && res.amount > 0 
-        //     && res.cost != undefined 
-        //     && res.cost.hasOwnProperty(resource.name));
-        // var costSummary = relevantResources.map(res => res.name + ': -' + numeral(res.cost[resource.name] 
-        //     * this.props.resourceManager.getResourceRate(res.name)).format('0.00')).join(', ');
 
         var resourceSummary = (
             <ul>
@@ -63,18 +51,6 @@ const SingleResource = React.createClass({
                 <li>Passive costs: {passiveCostSummary}</li>
             </ul>
         );
-
-        var devMode = true;
-        var displayChangeRatePos;
-        var displayChangeRateNeg;
-        if (devMode) {
-            displayChangeRatePos = (
-                <Button bsSize="xsmall" bsStyle="success" onClick={this.changeRate.bind(this, 0.2)}>+</Button>
-            );
-            displayChangeRateNeg = (
-                <Button bsSize="xsmall" bsStyle="danger" onClick={this.changeRate.bind(this, -0.2)}>-</Button>
-            );
-        }
 
         var popover = 
             (<Popover id="popover-trigger-hover-focus" title="Resource Summary" href="#">
