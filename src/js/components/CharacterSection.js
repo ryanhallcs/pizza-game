@@ -6,13 +6,28 @@ import SingleCharacter from "./SingleCharacter";
 import DisplayActions from "../actions/DisplayActions";
 
 const CharacterSection = React.createClass({
+  getInitialState: function() {
+    return {
+      characters: []
+    }
+  },
+  componentDidMount: function() {
+    CharacterStore.addChangeListener(this._onChangeCharacter);
+    this._onChangeCharacter();
+  },
+  componentWillUnmount: function() {
+    CharacterStore.removeChangeListener(this._onChangeCharacter);
+  },
+  _onChangeCharacter: function() {
+    this.state.characters = CharacterStore.getCharacters(this.props.place);
+    this.setState(this.state);
+  },
   switchToCharacterScreen: function(character) {
     var characterJsx = <SingleCharacter context={character} />;
     DisplayActions.pushDisplay(character.name, characterJsx);
   },
   render: function() {
-    var characters = CharacterStore.getCharacters(this.props.place);
-    //console.log(JSON.stringify(characters));
+    var characters = this.state.characters;
     var colWidth = Math.floor(12.0 / characters.length);
 
     return (

@@ -5,26 +5,34 @@ import ResourceStore from "../stores/ResourceStore";
 import ResourceActions from "../actions/ResourceActions";
 import TriggerStore from "../stores/TriggerStore";
 import FlagStore from "../stores/FlagStore";
+import InventoryStore from "../stores/InventoryStore";
 
 const ResourceDisplay = React.createClass({
     getInitialState: function() {
         return {
-            resources: ResourceStore.getAllResources()
+            resources: ResourceStore.getAllResources(),
+            inventory: InventoryStore.getInventory()
         };
     },
     componentDidMount: function() {
         ResourceStore.addChangeListener(this._onChangeResource);
+        InventoryStore.addChangeListener(this._onChangeInventory);
     },
     componentWillUnmount: function() {
         ResourceStore.removeChangeListener(this._onChangeResource);
+        InventoryStore.removeChangeListener(this._onChangeInventory);
     },
     _onChangeResource: function() {
         this.state.resources = ResourceStore.getAllResources();
         this.setState(this.state);
     },
+    _onChangeInventory: function() {
+        this.state.inventory = InventoryStore.getInventory();
+        this.setState(this.state);
+    },
     eatPizza: function() {
         ResourceActions.alterResourceAmount('pizza', -1);
-        TriggerStore.pushGameEvent('eat-pizza');
+        TriggerStore.pushNewGameEvent('eat-pizza');
     },
     render: function() {
         var allResources = this.state.resources;
@@ -62,6 +70,13 @@ const ResourceDisplay = React.createClass({
                 {buttons}
                 <br />
                 <br />
+                <h2>Inventory</h2>
+                {this.state.inventory.map(item => {
+                    return <p key={item.name}>{item.name}</p>
+                })}
+                <br />
+                <br />
+                <h2>Debug: Flags</h2>
                 {flags.map(function(flag) {
                     return <p key={flag}> {flag} is set! </p>
                 })}

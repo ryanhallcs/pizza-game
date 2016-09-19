@@ -29,7 +29,8 @@ module.exports = {
   }),
 
   CharacterActionTypes: keyMirror({
-      ENABLE_CHARACTER: null
+      TOGGLE_CHARACTER: null,
+      GIVE_RESOURCE: null
   }),
 
   DisplayActionTypes: keyMirror({
@@ -37,5 +38,9 @@ module.exports = {
       POP_DISPLAY: null,
       CHANGE_DISPLAY: null
   }),
+
+  InventoryActionTypes: keyMirror({
+      OWN_ITEM: null
+  })
 
 };

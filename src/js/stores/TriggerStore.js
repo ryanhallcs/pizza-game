@@ -5,22 +5,11 @@ var PizzaConstants = require('../constants/PizzaConstants');
 var EventStore = require('./EventStore');
 var MapStore = require('./MapStore');
 var ResourceStore = require('./ResourceStore');
+import InventoryStore from "./InventoryStore";
+import CharacterStore from "./CharacterStore";
 import DisplayStore from "./DisplayStore";
 
 const Triggers = [
-    /*
-        {
-            resources: {},
-            currentDisplay: '',
-            stats: {
-                ??? todo
-            },
-            result: '',
-            hasTriggered: bool,
-            type: '',
-            repeatable: bool
-        }
-    */
     {
         resources: {
             pizza: 2
@@ -41,8 +30,22 @@ const Triggers = [
         result: 'publish-stream',
         resultContext: 'Yum!',
         type: 'customEvent',
-        typeContext: 'eat-pizza',
+        typeContext: 'eat-pizza', // custom event emitted that triggers this
         repeatable: true
+    },
+
+    // Item triggers
+    {
+        characters: {
+            'old-jared': {
+                pizza: 10
+            }
+        },
+        result: 'own-item',
+        resultContext: 'boltcutters',
+        type: 'roommate',
+        repeatable: false,
+        hasTriggered: false
     }
 ];
 
@@ -70,6 +73,12 @@ const Events = {
         
         EventStore.publish('Wow, this pizza is great! You need help making more?', 'success');
         EventStore.emitChange();
+    },
+    'own-item': function(trigger) {
+        trigger.hasTriggered = true;
+        console.log('triggering own-item ' + trigger.resultContext);
+        InventoryStore.ownItem(trigger.resultContext);
+        InventoryStore.emitChange();
     }
 };
 
@@ -127,10 +136,6 @@ var TriggerStore = assign({}, EventEmitter.prototype, {
                     return customEventTrigger.customEventId == newEvent.id;
                 });
             });
-
-            if (this.newEvents.length > 0) {
-                this.emitChange();
-            }
         }
     },
 
@@ -142,7 +147,8 @@ var TriggerStore = assign({}, EventEmitter.prototype, {
                 && this.checkResources(trigger)
                 && this.checkDisplay(trigger)
                 && this.checkStats(trigger)
-                && this.checkNewEvents(trigger);
+                && this.checkNewEvents(trigger)
+                && this.checkCharacters(trigger);
         }.bind(this));
     },
 
@@ -160,18 +166,18 @@ var TriggerStore = assign({}, EventEmitter.prototype, {
         return notMet.length == 0;
     },
 
-    checkDisplay: function(trigger, pizzaState, stackManager) {
+    checkDisplay: function(trigger) {
         if (trigger.currentDisplay == null || trigger.currentDisplay == '') {
             return true;
         }
         return trigger.currentDisplay == DisplayStore.peek().name;
     },
 
-    checkStats: function(trigger, pizzaState, stackManager) {
+    checkStats: function(trigger) {
         return true; // todo
     },
 
-    checkNewEvents: function(trigger, pizzaState, stackManager) {
+    checkNewEvents: function(trigger) {
         if (trigger.type != 'customEvent') {
             return true;
         }
@@ -182,14 +188,26 @@ var TriggerStore = assign({}, EventEmitter.prototype, {
                 return true;
             }
         }, this);
+    },
+
+    checkCharacters: function(trigger) {
+        if (trigger.characters == null) {
+            return true;
+        }
+        var result = true;
+        for (var characterName in trigger.characters) {
+            var character = CharacterStore.getCharacter(characterName);
+            for (var resourceName in trigger.characters[characterName]) {
+                var given = character.given[resourceName];
+                given = given == null ? 0 : given;
+                if (trigger.characters[characterName][resourceName] > given) {
+                    result = false;
+                }
+            }
+        }
+
+        return result;
     }
 });
-
-// PizzaDispatcher.register(function(action) {
-
-//     switch (action.actionType) {
-
-//     }
-// })
 
 export default TriggerStore;

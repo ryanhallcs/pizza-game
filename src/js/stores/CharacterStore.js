@@ -10,7 +10,7 @@ var _characters = [
         name: 'laura-washington',
         description: 'A friendly parkgoer',
         place: 'park',
-        pizzasGiven: 0,
+        given: {},
         sayings: [
           {
             id: 'lw-hi-1',
@@ -37,7 +37,7 @@ var _characters = [
         name: 'old-jared',
         description: 'A curmudgeonly old man',
         place: 'park',
-        pizzasGiven: 0,
+        given: {},
         sayings: [
           {
             id: 'oj-hi-1',
@@ -70,7 +70,7 @@ var _characters = [
         name: 'bonnie-wreck',
         description: 'Your roommate for better or worse',
         place: 'home',
-        pizzasGiven: 0,
+        given: {},
         sayings: [
           {
             id: 'bw-hi-1',
@@ -91,8 +91,16 @@ var _characters = [
 
 var CHANGE_EVENT = 'change';
 
-function enableCharacter(name) {
-    _characters.find(character => character.name == name).enabled = true;
+function toggleCharacter(name, enabled) {
+    _characters.find(character => character.name == name).enabled = enabled;
+}
+
+function giveResource(characterName, resourceName, amount) {
+  var character = _characters.find(character => character.name == characterName);
+  if (character.given[resourceName] == null) {
+    character.given[resourceName] = 0;
+  }
+  character.given[resourceName] += amount;
 }
 
 var CharacterStore = assign({}, EventEmitter.prototype, {
@@ -106,6 +114,10 @@ var CharacterStore = assign({}, EventEmitter.prototype, {
 
     var index = Math.floor(Math.random() * greetings.length);
     return greetings[index].text;
+  },
+
+  getCharacter: function(name) {
+    return _characters.find(a => a.name == name); 
   },
   
   emitChange: function() {
@@ -132,10 +144,13 @@ PizzaDispatcher.register(function(action) {
 
   switch(action.actionType) {
     case PizzaConstants.CharacterActionTypes.ENABLE_CHARACTER:
-        enableCharacter(action.name);
-        CharacterStore.emitChange();
+      toggleCharacter(action.name, action.enabled);
+      CharacterStore.emitChange();
       break;
-
+    case PizzaConstants.CharacterActionTypes.GIVE_RESOURCE:
+      giveResource(action.characterName, action.resourceName, action.amount);
+      CharacterStore.emitChange();
+      break;
     default:
       // no op
   }
