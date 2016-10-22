@@ -53,20 +53,9 @@ const ResourceDisplay = React.createClass({
 
         return (
             <Row className='fill main-layout-border full-height'> <Col md={12}>
-                <Table striped bordered condensed hover>
-                    <thead>
-                        <tr>
-                            <th>Resource</th>
-                            <th>Amount</th>
-                            <th>Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {this.state.resources.map(resource =>
-                        <SingleResource key={resource.name} resource={resource} />
-                    )}
-                    </tbody>
-                </Table>
+                 {this.state.resources.map(resource =>
+                    <SingleResource key={resource.name} resource={resource} />
+                )}
                 {buttons}
                 <br />
                 <br />

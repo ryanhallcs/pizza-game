@@ -27,3 +27,7 @@
 .main-layout-border {
     border: 1px solid rgba(0, 0, 0, 0.5);
 }
+
+.single-resource {
+    text-align: center
+}

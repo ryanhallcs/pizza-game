@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Popover, OverlayTrigger } from 'react-bootstrap';
+import { Row, Col, Button, Popover, OverlayTrigger } from 'react-bootstrap';
 import ResourceStore from "../stores/ResourceStore";
 import ResourceActions from "../actions/ResourceActions";
 var numeral = require('numeral');
@@ -29,7 +29,7 @@ const SingleResource = React.createClass({
         var displayAmount = numeral(resource.amount).format('0.00');
         var rateSummary = ResourceStore.getRateDetails(resource.name);
  
-        var displayRate = '';
+        var displayRate = '+0.00/s';
         if (resource.calculatedRate != 0) {
             var sign = resource.calculatedRate > 0 ? '+' : '-';
             displayRate = '' + sign + numeral(resource.calculatedRate).format('0.00') + '/s ';
@@ -57,16 +57,23 @@ const SingleResource = React.createClass({
                 {resourceSummary}
             </Popover>);
 
+        var imageUrl = "../../images/" + resource.name + ".png";
+
         return (
-            <tr key={resource.name}>
-                <td>{resource.name}</td>
-                <td>{displayAmount}</td>
-                <td>
+            <Row className="main-layout-border single-resource ">
+                <Col md={6}>
+                    {resource.name}
+                    <br />
+                    <img src={imageUrl} />
+                </Col>
+                <Col md={6}>
+                    <h3>{displayAmount}</h3>
+                    <br />
                     <OverlayTrigger trigger={['hover', 'focus']} placement="bottom" overlay={popover}>
-                        <Button>{displayRate}</Button>
+                        <Button><h3>{displayRate}</h3></Button>
                     </OverlayTrigger>
-                </td>
-            </tr>
+                </Col>
+            </Row>
         );
     }
 });

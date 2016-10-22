@@ -116,6 +116,7 @@ const Home2 = React.createClass({
         var unassigned = helpers - total;
         var canBuyHelper = ResourceStore.canMakeResource('helper', 1);
         var helperCost = numeral(helperResource.cost.pizza).format('0.00');
+        var imagePrefix = "../../images/";
         return (
             <Row> <Col md={12}>
                 <Row> <Col md={12}> <h1> You're home! </h1> </Col> </Row> 
@@ -124,7 +125,7 @@ const Home2 = React.createClass({
                     <Col md={6}> <h3> Unassigned: {unassigned} </h3> </Col>
                     <Col md={6}> <Button disabled={!canBuyHelper} onClick={this.addHelper}> Convert helper ({helperCost} pizzas) </Button> </Col>
                 </Row> 
-                <Row>
+                <Row className="single-resource">
                     <Col md={12}>
                         <Table striped bordered condensed hover>
                             <thead>
@@ -140,7 +141,11 @@ const Home2 = React.createClass({
                                      this.state.professions[prof].enabled
                                 ).map((prof) =>
                                     <tr>
-                                        <td>{this.state.professions[prof].name}</td>
+                                        <td>
+                                            {this.state.professions[prof].name}
+                                            <br />
+                                            <img src={imagePrefix + this.state.professions[prof].name + ".png"} />  
+                                        </td>
                                         <td>{this.state.professions[prof].amount}</td>
                                         <td><Button disabled={unassigned <= 0} onClick={this.addProfession.bind(this, this.state.professions[prof].name, 1)}>+</Button></td>
                                         <td><Button disabled={this.state.professions[prof].amount <= 0} onClick={this.removeProfession.bind(this, this.state.professions[prof].name, 1)}>-</Button></td>
